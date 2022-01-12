@@ -8,9 +8,10 @@ students with student number:
 - Nina Holtzbach: XXXXXXX
 - Johanna : XXXXX
 
-## workflow
+## workflow 
 main points of attention:
 - Please use vscode as text editor 😅.
+- If you make edits to main files you should create a branch with git and then if you think its working create a merge request. 
 - Try to work with `.py` files and not with `.ipynb`. 
 - Try to isolate functionality in functions as much as possible (see example below)
 - write tests in the docstrings of the functions 

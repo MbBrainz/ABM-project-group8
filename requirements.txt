@@ -1,0 +1,9 @@
+###### Requirements without version specifiers ######
+bokeh
+numba
+numpy
+pandas
+pytest
+scipy
+seaborn
+simpy

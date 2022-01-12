@@ -1,6 +1,13 @@
 # ABM-project8
 Agent Based Modeling project of group 8
 
+students with student number:
+- Maurits Bos: 14014777
+- Noah van de Bunt: XXXXXXX
+- Sasha Boykova: XXXXXXX
+- Nina Holtzbach: XXXXXXX
+- Johanna : XXXXX
+
 ## workflow
 main points of attention:
 - Please use vscode as text editor 😅.

@@ -4,7 +4,7 @@ Agent Based Modeling project of group 8
 students with student number:
 - Maurits Bos: 14014777
 - Noah van de Bunt: 11226218
-- Sasha Boykova: XXXXXXX
+- Sasha Boykova: 12106070
 - Nina Holzbach: 13827464
 - Johanna : 12108006
 

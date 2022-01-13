@@ -5,7 +5,7 @@ students with student number:
 - Maurits Bos: 14014777
 - Noah van de Bunt: XXXXXXX
 - Sasha Boykova: XXXXXXX
-- Nina Holtzbach: XXXXXXX
+- Nina Holzbach: 13827464
 - Johanna : XXXXX
 
 ## workflow 

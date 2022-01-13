@@ -6,7 +6,7 @@ students with student number:
 - Noah van de Bunt: XXXXXXX
 - Sasha Boykova: XXXXXXX
 - Nina Holzbach: 13827464
-- Johanna : XXXXX
+- Johanna : 12108006
 
 ## workflow 
 main points of attention:

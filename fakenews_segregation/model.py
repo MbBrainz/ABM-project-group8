@@ -1,4 +1,5 @@
 from audioop import avg
+from operator import contains
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
@@ -37,10 +38,33 @@ class Resident(Agent):
 
         self.theta = self.random.uniform(0,1) # we can use different distributions if we want to
 
-        # TO DO: SOCIAL NETWORK ATTRIBUTE
+    def get_external_influences(self):
+        nbr_influence = 0
+        n_nbrs = 0
+        social_influence = 0
+        n_socials = 0
 
+        # loop through social network and calculate influence
+        socials_ids = [social_id for social_id in self.model.Graph[self.unique_id]]
+        socials = [social for social in self.model.schedule.agents if social.unique_id in socials_ids]
+        for social in socials:
+            n_socials += 1
+            social_influence += social.belief
+        avg_social = social_influence / n_socials
+
+        # loop through spatial neighbors and calculate influence 
+        for nbr in self.model.grid.get_neighbors(pos=self.pos,moore=True,include_center=False,radius=1):
+            n_nbrs += 1
+            nbr_influence += nbr.belief
+        avg_nbr = nbr_influence / n_nbrs
+
+        return avg_social, avg_nbr
+    
     def update_belief(self):
-        pass
+        # update own belief based on external and internal influence
+        social_infl, nbr_infl = self.get_external_influences()
+        new_belief = (self.weight_own * self.belief) + (self.weight_socials * social_infl) + (self.weight_neighbors * nbr_infl)
+        self.belief = new_belief
 
     def new_social(self):
         pass
@@ -52,11 +76,12 @@ class Resident(Agent):
         pass
 
     def step(self):
-        print(f"Now at agent {self.unique_id}")
+        pass
+
 
 
 class CityModel(Model):
-    def __init__(self, width=5, height=5, m_barabasi=2):
+    def __init__(self, width=5, height=5, m_barabasi=2, seed=711):
         print("init")
         # grid variables
         self.width = width

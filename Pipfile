@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+bokeh = "*"
+numba = "*"
+numpy = "*"
+pandas = "*"
+pytest = "*"
+scipy = "*"
+seaborn = "*"
+simpy = "*"
+Mesa = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

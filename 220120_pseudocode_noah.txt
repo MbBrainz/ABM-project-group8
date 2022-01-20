@@ -1,0 +1,29 @@
+yearspassed = 0
+
+*** PSEUDOCODE FOR 1 AGENT FULL STEP ***
+
+yearspassed += 1 
+
+# updating view # 
+social_influence = average view of friends
+neighbor_influence = average view of neighbors 
+new_view = weighted average of external and internal influence 
+	# weights are determined by vulnerability, external is 80% friends, 20% neighbors 
+
+# making new friend # 
+select random unconnected agent
+P_connecting = random_agent_view on normal distribution with mu=own_view, sigma=? 
+
+# removing friend # 
+select random friend
+P_removing = difference in view
+
+# moving #
+P_moving = dependent on years_passed, should increase in some way gradually? Cumulative distr?  
+
+if moving:
+	for vacant_spot in grid: 
+		average_deviation = average deviation from neighbors from own view
+	new_spot = min(average_deviations)
+	move to new_spot
+	yearspassed = 0

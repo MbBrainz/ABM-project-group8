@@ -28,4 +28,4 @@ class CityModel(Model):
         # the scheduler uses the step() functions of the agents 
         self.schedule.step()
 
-
+# this is a comment by Sasha

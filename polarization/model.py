@@ -1,10 +1,8 @@
-from audioop import avg
-from operator import contains
+
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 import random
-import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
@@ -22,7 +20,7 @@ random.seed(711)
 SOCIAL = 0.8
 NEIGHBORS = 1 - SOCIAL
 N_POTENTIAL_CONNECTIONS = 5
-FERMI_ALPHA = 2
+FERMI_ALPHA = 1
 FERMI_B = 3
 
 class Resident(Agent):
@@ -31,7 +29,7 @@ class Resident(Agent):
 
         # Variable attributes:
         self.pos = pos
-        self.view = self.random.uniform(0,1) # we can use different distributions if we want to
+        self.view = self.random.uniform(0,10) # we can use different distributions if we want to
 
         # Fixed attributes
         # set parameters for changing political view
@@ -41,6 +39,22 @@ class Resident(Agent):
         self.weight_neighbors = NEIGHBORS * self.vulnerability
 
         self.theta = self.random.uniform(0,1) # we can use different distributions if we want to
+
+    @property
+    def socials_ids(self):
+        return [social_id for social_id in self.model.graph[self.unique_id]]
+
+    @property
+    def socials(self):
+        return [social for social in self.model.schedule.agents if social.unique_id in self.socials_ids]
+
+    @property
+    def unconnected_ids(self):
+        return [id for id in self.model.graph.nodes if id not in self.socials_ids]
+
+    @property
+    def unconnected(self):
+        return  [unconnected for unconnected in self.model.schedule.agents if unconnected.unique_id not in self.socials_ids]
 
 
     def get_external_influences(self, socials_ids):
@@ -59,8 +73,7 @@ class Resident(Agent):
         n_socials = 0
 
         # loop through social network and calculate influence
-        socials = [social for social in self.model.schedule.agents if social.unique_id in socials_ids]
-        for social in socials:
+        for social in self.socials:
             n_socials += 1
             social_influence += social.view
         avg_social = social_influence / n_socials if n_socials != 0 else 0
@@ -79,16 +92,15 @@ class Resident(Agent):
             Vulnerability determines strength of external and internal influence.
             External influence is divided into 80% friends, 20% neighbors.
         """
-        # need to determine friends again after updating the network before updating the view
-        socials_ids = [social_id for social_id in self.model.graph[self.unique_id]]
 
         # update own political view based on external and internal influence
-        social_infl, nbr_infl = self.get_external_influences(socials_ids)
+        social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
+
         new_view = (self.weight_own * self.view) + (self.weight_socials * social_infl) + (self.weight_neighbors * nbr_infl)
         self.view = new_view
 
 
-    def new_social(self, socials_ids):
+    def new_social(self):
         """Adds a new random connection from the agent with a probability determined by the Fermi-Dirac distribution.
             Choice of addition depends on similarity in political view.
 
@@ -96,48 +108,47 @@ class Resident(Agent):
                 socials_ids (list): IDs of social connections of agent
         """
         # select random un-connected agent, determine whether to form a new connection
-        unconnected = [agent for agent in self.model.schedule.agents if agent.unique_id not in socials_ids and \
-             agent.unique_id != self.unique_id]
+        if len(self.unconnected_ids) < N_POTENTIAL_CONNECTIONS:
+            n_potentials = len(self.unconnected_ids)
+        else:
+            n_potentials = N_POTENTIAL_CONNECTIONS
 
-        potentials = random.choices(unconnected, k=N_POTENTIAL_CONNECTIONS)
+        pot_make_ids = np.random.choice(self.unconnected_ids, size=n_potentials, replace=False)
 
-        for potential in potentials:
+        pot_makes = [social for social in self.model.schedule.agents if social.unique_id in pot_make_ids]
+
+        for potential in pot_makes:
             self.consider_connection(potential_agent=potential, method="ADD")
 
-        # choice = random.choice(unconnected)
-        # other_view = choice.view
-
-        # # calculate the probability to form a connection from a normal distribution
-        # if random.uniform(0,1) < self.normal_dist(other_view, self.view, 0.25*self.theta):
-        #     # make a new connection
-        #     self.model.graph.add_edge(self.unique_id, choice.unique§1_id)
-
-    def remove_social(self, socials_ids):
+    def remove_social(self):
         """Removes a random connection from the agent with a probability determined by the Fermi-Dirac distribution.
+
             Choice of removal depends on similarity in political view.
 
             Args:
                 socials_ids (list): IDs of social connections of agent
         """
-        socials = [social for social in self.model.schedule.agents if social.unique_id in socials_ids]
+        if len(self.socials_ids) < N_POTENTIAL_CONNECTIONS:
+            n_potentials = len(self.socials_ids)
+        else:
+            n_potentials = N_POTENTIAL_CONNECTIONS
 
-        potentials = random.choices(socials, k=N_POTENTIAL_CONNECTIONS)
-        for potential in potentials:
+        pot_break_ids = np.random.choice(self.socials_ids, size=n_potentials, replace=False)
+
+        pot_breaks = [social for social in self.model.schedule.agents if social.unique_id in pot_break_ids]
+
+        for potential in pot_breaks:
             self.consider_connection(potential, method="REMOVE")
 
-        # choice = random.choice(socials)
-        # other_view = choice.view
 
-        # if random.uniform(0,1) < 1 - self.normal_dist(other_view, self.view, 0.25*self.theta):
-        #     # remove connection
-        #     self.model.graph.remove_edge(self.unique_id, choice.unique_id)
-
-    def consider_connection(self, potential_agent, method="ADD"):
-        p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*((self.view - potential_agent.view) - FERMI_B)))
+    def consider_connection(self, potential_agent, method):
+        p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - potential_agent.view) - FERMI_B)))
 
         if method == "ADD":
             if p_ij > random.random():
+
                 self.model.graph.add_edge(self.unique_id, potential_agent.unique_id)
+                print("v")
 
         if method == "REMOVE":
             if p_ij < random.random():
@@ -166,9 +177,8 @@ class Resident(Agent):
         """A full step of the agent, consisting of:
         ...
         """
-        socials_ids = [social_id for social_id in self.model.graph[self.unique_id]]
-        self.new_social(socials_ids)
-        self.remove_social(socials_ids)
+        self.new_social()
+        self.remove_social()
         self.update_view()
         #self.update_local()
 
@@ -194,6 +204,7 @@ class CityModel(Model):
 
         # build a social network
         self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
+
 
     def initialize_population(self):
         for cell in self.grid.coord_iter():

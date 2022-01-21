@@ -42,7 +42,9 @@ class TestResident(unittest.TestCase):
         self.patch_random()
 
         self.model.graph = empty_graph(n=self.model.n_agents)
-        self.test_agent.new_social([1])
+        assert len(to_edgelist(self.model.graph)) == 0
+
+        self.test_agent.new_social()
 
         assert len(to_edgelist(self.model.graph)) == 1, "edgelist is empty"
         assert to_edgelist(self.model.graph)[0] == (1)
@@ -52,11 +54,14 @@ class TestResident(unittest.TestCase):
         self.patch_random()
 
         self.model.graph = complete_graph(n=self.model.n_agents)
-        self.test_agent.remove_social([1])
+        assert len(to_edgelist(self.model.graph)) > self.model.width * self.model.height
+        self.test_agent.remove_social()
+
         assert ((self.test_agent.unique_id, 1) in to_edgelist(self.model.graph)) == False, "Edge has not been removed"
 
+
     def patch_random(self):
-        self.test_resident = Resident(unique_id=1, model=self.model, pos=(0,1))
+        self.test_resident = self.model.schedule.agents[1]
 
         self.random_patch = self.random_random_patcher.start()
         self.random_patch.return_value = 1

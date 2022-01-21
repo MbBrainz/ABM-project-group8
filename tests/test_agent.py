@@ -1,21 +1,22 @@
 import unittest
-from mesa.time import RandomActivation
 from networkx import barabasi_albert_graph, complete_graph, empty_graph, to_edgelist
+from unittest.mock import patch
 
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from polarization.model import CityModel, Resident
 from test_model import clear_model
-from unittest.mock import patch
+
 
 
 global N_POTENTIAL_CONNECTIONS
 N_POTENTIAL_CONNECTIONS = 1
 
+
 class TestResident(unittest.TestCase):
     def setUp(self) -> None:
-        self.model = CityModel(width=5,height=5, m_barabasi=2, seed=711)
+        self.model = CityModel(width=2, height=2, m_barabasi=2, seed=711)
         clear_model(self.model)
         self.model.density = 1
         self.model.initialize_population()
@@ -29,14 +30,14 @@ class TestResident(unittest.TestCase):
         return super().setUp()
 
     def test_initialisation(self):
-        assert self.test_agent != 0
-        assert self.test_agent.model != 0
+        assert type(self.test_agent) == Resident
+        assert type(self.test_agent.model) == CityModel
         assert self.test_agent.pos != 0
-        assert self.test_agent.pos == (0,0)
-        assert len(self.model.schedule.agents) == self.model.width * self.model.height
+        assert self.test_agent.pos == (0, 0)
+        assert len(self.model.schedule.agents) == self.model.width * \
+            self.model.height
 
-    def test_new_social(self):
-        # Inject the return value of the random.choices()
+    def test_new_social_accept_all(self):
         self.patch_random()
         self.random_patch.return_value = 0
 
@@ -45,18 +46,46 @@ class TestResident(unittest.TestCase):
 
         self.test_agent.new_social()
 
-        assert len(self.test_agent.socials_ids) == 5, "edgelist is empty"
+        assert len(self.test_agent.socials_ids) == 3, "edgelist is empty"
+
+    def test_new_social_accept_none(self):
+        self.patch_random()
+        self.random_patch.return_value = 1
+
+        self.model.graph = empty_graph(n=self.model.n_agents)
+
+        self.test_agent.new_social()
+
+        assert len(self.test_agent.socials_ids) == 0, "it made friends!"
+
+    def test_new_social_while_all_connected(self):
+        self.patch_random()
+        self.random_patch.return_value = 1
+
+        self.model.graph = complete_graph(n=self.model.n_agents)
+        print(self.test_agent.unconnected_ids)
+        assert len(
+            self.test_agent.unconnected_ids) == 0,  "unconnected_agents are "
+
+        self.test_agent.new_social()
+        assert len(self.test_agent.unconnected_ids) == 0, "It removed stuf?!"
 
     def test_remove_social(self):
-        # Inject the return value of the random.choices() to
         self.patch_random()
 
         self.model.graph = complete_graph(n=self.model.n_agents)
-        assert len(to_edgelist(self.model.graph)) > self.model.width * self.model.height
+        assert len(to_edgelist(self.model.graph)
+                   ) > self.model.width * self.model.height
         self.test_agent.remove_social()
 
-        assert ((self.test_agent.unique_id, 1) in to_edgelist(self.model.graph)) == False, "Edge has not been removed"
+        assert ((self.test_agent.unique_id, 1) in to_edgelist(
+            self.model.graph)) == False, "Edge has not been removed"
 
+    def test_datacollector(self):
+        self.model.graph = empty_graph(n=self.model.n_agents)
+        self.model.step()
+        agent_df = self.model.datacollector.get_agent_vars_dataframe()
+        assert agent_df.shape == (4, 1), "shape is different than expected"
 
     def patch_random(self):
         self.test_resident = self.model.schedule.agents[1]

@@ -2,8 +2,12 @@
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
+
 import random
 import networkx as nx
+from networkx.algorithms.community import greedy_modularity_communities
+from networkx.algorithms.community.quality import modularity
 import numpy as np
 
 """This file should contain the model class.
@@ -50,7 +54,7 @@ class Resident(Agent):
 
     @property
     def unconnected_ids(self):
-        return [id for id in self.model.graph.nodes if id not in self.socials_ids]
+        return [id for id in self.model.graph.nodes if (id not in self.socials_ids + [self.unique_id])]
 
     @property
     def unconnected(self):
@@ -86,7 +90,6 @@ class Resident(Agent):
 
         return avg_social, avg_nbr
 
-
     def update_view(self):
         """Update political view with a weighted average of own view, friends' view, and neighbors' view.
             Vulnerability determines strength of external and internal influence.
@@ -98,7 +101,6 @@ class Resident(Agent):
 
         new_view = (self.weight_own * self.view) + (self.weight_socials * social_infl) + (self.weight_neighbors * nbr_infl)
         self.view = new_view
-
 
     def new_social(self):
         """Adds a new random connection from the agent with a probability determined by the Fermi-Dirac distribution.
@@ -191,8 +193,6 @@ class Resident(Agent):
         self.update_view()
 
 
-
-
 class CityModel(Model):
     def __init__(self, width=5, height=5, m_barabasi=2, seed=711):
         print("init")
@@ -213,6 +213,20 @@ class CityModel(Model):
         # build a social network
         self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
 
+        self.datacollector = DataCollector(
+            model_reporters={
+                "graph_modularity": self.calculate_modularity,
+
+            },
+            agent_reporters={
+                "view": lambda x: x.view
+            }
+        )
+
+    def calculate_modularity(self):
+        max_mod_communities = greedy_modularity_communities(self.graph)
+        mod = modularity(self.graph, max_mod_communities)
+        return mod
 
     def initialize_population(self):
         for cell in self.grid.coord_iter():
@@ -231,6 +245,7 @@ class CityModel(Model):
         self.schedule.step()
 
         # here, we need to collect data with a DataCollector
+        self.datacollector.collect(self)
 
     def run_model(self, step_count=1):
         """Method that runs the model for a fixed number of steps"""

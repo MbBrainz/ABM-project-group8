@@ -13,8 +13,6 @@ from unittest.mock import patch
 global N_POTENTIAL_CONNECTIONS
 N_POTENTIAL_CONNECTIONS = 1
 
-
-
 class TestResident(unittest.TestCase):
     def setUp(self) -> None:
         self.model = CityModel(width=5,height=5, m_barabasi=2, seed=711)
@@ -40,14 +38,14 @@ class TestResident(unittest.TestCase):
     def test_new_social(self):
         # Inject the return value of the random.choices()
         self.patch_random()
+        self.random_patch.return_value = 0
 
         self.model.graph = empty_graph(n=self.model.n_agents)
         assert len(to_edgelist(self.model.graph)) == 0
 
         self.test_agent.new_social()
 
-        assert len(to_edgelist(self.model.graph)) == 1, "edgelist is empty"
-        assert to_edgelist(self.model.graph)[0] == (1)
+        assert len(self.test_agent.socials_ids) == 5, "edgelist is empty"
 
     def test_remove_social(self):
         # Inject the return value of the random.choices() to

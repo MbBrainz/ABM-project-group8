@@ -240,5 +240,5 @@ class CityModel(Model):
             self.step()
 
 # Testing:
-model = CityModel()
-model.run_model()
+# model = CityModel()
+# model.run_model()

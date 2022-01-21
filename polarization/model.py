@@ -113,16 +113,17 @@ class Resident(Agent):
         else:
             n_potentials = N_POTENTIAL_CONNECTIONS
 
+        # randomly select 'n_potentials' from people your not connected to
         pot_make_ids = np.random.choice(self.unconnected_ids, size=n_potentials, replace=False)
 
+        # get agents from model.schedule with the id's from the pot_make_ids
         pot_makes = [social for social in self.model.schedule.agents if social.unique_id in pot_make_ids]
 
         for potential in pot_makes:
             self.consider_connection(potential_agent=potential, method="ADD")
 
     def remove_social(self):
-        """Removes a random connection from the agent with a probability determined by the Fermi-Dirac distribution.
-
+        """Removes a few random connections from the agent with a probability determined by the Fermi-Dirac distribution.
             Choice of removal depends on similarity in political view.
 
             Args:
@@ -133,8 +134,10 @@ class Resident(Agent):
         else:
             n_potentials = N_POTENTIAL_CONNECTIONS
 
+        # randomly select 'n_potentials' from the your network
         pot_break_ids = np.random.choice(self.socials_ids, size=n_potentials, replace=False)
 
+        # get agents from model.schedule with the id's from the pot_break_ids
         pot_breaks = [social for social in self.model.schedule.agents if social.unique_id in pot_break_ids]
 
         for potential in pot_breaks:
@@ -142,18 +145,21 @@ class Resident(Agent):
 
 
     def consider_connection(self, potential_agent, method):
+        """Calculate the porobability of agent being connected to 'potential agent' and based on method add or remove the connection randomly
+
+        Args:
+            potential_agent (Resident): the resident to consider
+            method (str): "ADD" or "REMOVE"
+        """
         p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - potential_agent.view) - FERMI_B)))
 
         if method == "ADD":
             if p_ij > random.random():
-
                 self.model.graph.add_edge(self.unique_id, potential_agent.unique_id)
-                print("v")
 
         if method == "REMOVE":
             if p_ij < random.random():
                 self.model.graph.remove_edge(self.unique_id, potential_agent.unique_id)
-                print("gedaan")
 
     def normal_dist(self, x, mu, std):
         # NOT THIS ONE, FERMI-DIRAC !!!!
@@ -168,19 +174,21 @@ class Resident(Agent):
         """
         return (1 / (std * np.sqrt(2* np.pi)))* np.exp(-0.5*((x-mu)/std)**2)
 
-
     def move_pos(self):
         pass
-
 
     def step(self):
         """A full step of the agent, consisting of:
         ...
         """
+        # update network
         self.new_social()
         self.remove_social()
+
+        #update grid
+
+        #update view
         self.update_view()
-        #self.update_local()
 
 
 

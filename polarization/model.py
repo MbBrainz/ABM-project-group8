@@ -1,9 +1,11 @@
 
 from doctest import ELLIPSIS_MARKER
+from time import time
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
+from benchmarking import time_model_step
 
 import random
 import networkx as nx
@@ -180,21 +182,21 @@ class Resident(Agent):
         return (1 / (std * np.sqrt(2* np.pi)))* np.exp(-0.5*((x-mu)/std)**2)
 
     def move_pos(self):
-        """ 
-        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability 
-        of moving increase as the time since the last move increases. 
         """
-        
+        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
+        of moving increase as the time since the last move increases.
+        """
+
         # get the average view of the neighbours (nbr_infl)
         social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
-        
+
         # compare your view with the average of your neighbours using the fermi dirac equation.
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < 0.5:
             self.model.grid.move_to_empty(self)
-           
+
 
     def step(self):
         """A full step of the agent, consisting of:
@@ -269,9 +271,24 @@ class CityModel(Model):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
-        for i in range(step_count):
-            self.step()
 
-# Testing:
-# model = CityModel()
-# model.run_model()
+        benchmark = time_model_step(self.width, self.height, self)
+        print(f"The first step of this model took {benchmark:.2f} seconds")
+        print(f"This sinulation is going to take arount {step_count*benchmark:.2} seconds. Do you want to proceed? (y of n)")
+        proceed = ""
+        while proceed != "n" and proceed != "y":
+            proceed = input()
+            if proceed =="n":
+                pass
+            elif proceed  == "y":
+                for i in range(step_count - 1):
+                    self.step()
+            else:
+                print(f"WRONG setting chosen. pressvtype 'y' of 'n")
+
+def main():
+    model = CityModel()
+    model.run_model()
+
+if __name__=="__main__":
+    main()

@@ -1,4 +1,5 @@
 
+from doctest import ELLIPSIS_MARKER
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
@@ -99,7 +100,9 @@ class Resident(Agent):
         # update own political view based on external and internal influence
         social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
 
-        new_view = (self.weight_own * self.view) + (self.weight_socials * social_infl) + (self.weight_neighbors * nbr_infl)
+        new_view = (self.weight_own * self.view) + \
+            (self.weight_socials * social_infl) + \
+            (self.weight_neighbors * nbr_infl)
         self.view = new_view
 
     def new_social(self):
@@ -177,7 +180,21 @@ class Resident(Agent):
         return (1 / (std * np.sqrt(2* np.pi)))* np.exp(-0.5*((x-mu)/std)**2)
 
     def move_pos(self):
-        pass
+        """ 
+        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability 
+        of moving increase as the time since the last move increases. 
+        """
+        
+        # get the average view of the neighbours (nbr_infl)
+        social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
+        
+        # compare your view with the average of your neighbours using the fermi dirac equation.
+        happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - nbr_infl) - FERMI_B)))
+
+        # if happiness is below some threshold, move to a random free position in the neighbourhood.
+        if happiness < 0.5:
+            self.model.grid.move_to_empty(self)
+           
 
     def step(self):
         """A full step of the agent, consisting of:
@@ -188,6 +205,7 @@ class Resident(Agent):
         self.remove_social()
 
         #update grid
+        self.move_pos()
 
         #update view
         self.update_view()

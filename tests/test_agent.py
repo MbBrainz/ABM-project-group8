@@ -83,9 +83,12 @@ class TestResident(unittest.TestCase):
 
     def test_datacollector(self):
         self.model.graph = empty_graph(n=self.model.n_agents)
+        self.model.grid.remove_agent(self.model.schedule.agents[-1])
+        self.model.graph.remove_node(self.model.schedule.agents[-1].unique_id)
+        self.model.schedule.remove(self.model.schedule.agents[-1])
         self.model.step()
         agent_df = self.model.datacollector.get_agent_vars_dataframe()
-        assert agent_df.shape == (4, 1), "shape is different than expected"
+        assert agent_df.shape == (3, 1), "shape is different than expected"
 
     def patch_random(self):
         self.test_resident = self.model.schedule.agents[1]

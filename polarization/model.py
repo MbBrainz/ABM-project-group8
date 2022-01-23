@@ -4,7 +4,6 @@ from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-from benchmarking import time_model_step
 
 import random
 import networkx as nx
@@ -273,22 +272,9 @@ class CityModel(Model):
         for i in range(step_count):
             self.step()
 
+import sys
+from benchmarking import benchmark
 
-def benchmark(model, step_count):
-    benchmark = time_model_step(model.width, model.height, model)
-    print(f"The first step of this model took {benchmark:.3f} seconds")
-    print(f"This sinulation is going to take arount {step_count*benchmark:.2f} seconds. Do you want to proceed? (y of n)")
-    proceed = ""
-    while proceed != "y":
-        proceed = input()
-        if proceed == "n":
-            return False
-        elif proceed == "y":
-            return True
-        else:
-            print(f"WRONG setting chosen. Please type 'y' of 'n'")
-
-import sys, getopt
 def main(argv):
     if len(argv) != 1:
         print ("usage: model.py <steps>")

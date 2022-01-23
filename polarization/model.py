@@ -1,6 +1,5 @@
 
-from doctest import ELLIPSIS_MARKER
-from time import time
+from ast import arg
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
@@ -64,7 +63,7 @@ class Resident(Agent):
         return  [unconnected for unconnected in self.model.schedule.agents if unconnected.unique_id not in self.socials_ids]
 
 
-    def get_external_influences(self, socials_ids):
+    def get_external_influences(self):
         """Calculate the external influence for an agent.
         Average view of friends and average view of neighbors is calculated.
 
@@ -100,7 +99,7 @@ class Resident(Agent):
         """
 
         # update own political view based on external and internal influence
-        social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
+        social_infl, nbr_infl = self.get_external_influences()
 
         new_view = (self.weight_own * self.view) + \
             (self.weight_socials * social_infl) + \
@@ -188,7 +187,7 @@ class Resident(Agent):
         """
 
         # get the average view of the neighbours (nbr_infl)
-        social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
+        social_infl, nbr_infl = self.get_external_influences()
 
         # compare your view with the average of your neighbours using the fermi dirac equation.
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - nbr_infl) - FERMI_B)))
@@ -271,24 +270,35 @@ class CityModel(Model):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
+        for i in range(step_count):
+            self.step()
 
-        benchmark = time_model_step(self.width, self.height, self)
-        print(f"The first step of this model took {benchmark:.2f} seconds")
-        print(f"This sinulation is going to take arount {step_count*benchmark:.2} seconds. Do you want to proceed? (y of n)")
-        proceed = ""
-        while proceed != "n" and proceed != "y":
-            proceed = input()
-            if proceed =="n":
-                pass
-            elif proceed  == "y":
-                for i in range(step_count - 1):
-                    self.step()
-            else:
-                print(f"WRONG setting chosen. pressvtype 'y' of 'n")
 
-def main():
+def benchmark(model, step_count):
+    benchmark = time_model_step(model.width, model.height, model)
+    print(f"The first step of this model took {benchmark:.3f} seconds")
+    print(f"This sinulation is going to take arount {step_count*benchmark:.2f} seconds. Do you want to proceed? (y of n)")
+    proceed = ""
+    while proceed != "y":
+        proceed = input()
+        if proceed == "n":
+            return False
+        elif proceed == "y":
+            return True
+        else:
+            print(f"WRONG setting chosen. Please type 'y' of 'n'")
+
+import sys, getopt
+def main(argv):
+    if len(argv) != 1:
+        print ("usage: model.py <steps>")
+        return
+
     model = CityModel()
-    model.run_model()
+    proceed = benchmark(model, int(argv[0]))
+    if proceed:
+        model.run_model()
 
 if __name__=="__main__":
-    main()
+    import sys
+    main(sys.argv[1:])

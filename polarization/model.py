@@ -1,10 +1,14 @@
 
-from doctest import ELLIPSIS_MARKER
+from ast import arg
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
+
 import random
 import networkx as nx
+from networkx.algorithms.community import greedy_modularity_communities
+from networkx.algorithms.community.quality import modularity
 import numpy as np
 
 """This file should contain the model class.
@@ -51,14 +55,14 @@ class Resident(Agent):
 
     @property
     def unconnected_ids(self):
-        return [id for id in self.model.graph.nodes if id not in self.socials_ids]
+        return [id for id in self.model.graph.nodes if (id not in self.socials_ids + [self.unique_id])]
 
     @property
     def unconnected(self):
         return  [unconnected for unconnected in self.model.schedule.agents if unconnected.unique_id not in self.socials_ids]
 
 
-    def get_external_influences(self, socials_ids):
+    def get_external_influences(self):
         """Calculate the external influence for an agent.
         Average view of friends and average view of neighbors is calculated.
 
@@ -87,7 +91,6 @@ class Resident(Agent):
 
         return avg_social, avg_nbr
 
-
     def update_view(self):
         """Update political view with a weighted average of own view, friends' view, and neighbors' view.
             Vulnerability determines strength of external and internal influence.
@@ -95,13 +98,12 @@ class Resident(Agent):
         """
 
         # update own political view based on external and internal influence
-        social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
+        social_infl, nbr_infl = self.get_external_influences()
 
         new_view = (self.weight_own * self.view) + \
             (self.weight_socials * social_infl) + \
             (self.weight_neighbors * nbr_infl)
         self.view = new_view
-
 
     def new_social(self):
         """Adds a new random connection from the agent with a probability determined by the Fermi-Dirac distribution.
@@ -178,21 +180,21 @@ class Resident(Agent):
         return (1 / (std * np.sqrt(2* np.pi)))* np.exp(-0.5*((x-mu)/std)**2)
 
     def move_pos(self):
-        """ 
-        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability 
-        of moving increase as the time since the last move increases. 
         """
-        
+        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
+        of moving increase as the time since the last move increases.
+        """
+
         # get the average view of the neighbours (nbr_infl)
-        social_infl, nbr_infl = self.get_external_influences(self.socials_ids)
-        
+        social_infl, nbr_infl = self.get_external_influences()
+
         # compare your view with the average of your neighbours using the fermi dirac equation.
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < 0.5:
             self.model.grid.move_to_empty(self)
-           
+
 
     def step(self):
         """A full step of the agent, consisting of:
@@ -229,6 +231,20 @@ class CityModel(Model):
         # build a social network
         self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
 
+        self.datacollector = DataCollector(
+            model_reporters={
+                "graph_modularity": self.calculate_modularity,
+
+            },
+            agent_reporters={
+                "view": lambda x: x.view
+            }
+        )
+
+    def calculate_modularity(self):
+        max_mod_communities = greedy_modularity_communities(self.graph)
+        mod = modularity(self.graph, max_mod_communities)
+        return mod
 
     def initialize_population(self):
         for cell in self.grid.coord_iter():
@@ -247,6 +263,7 @@ class CityModel(Model):
         self.schedule.step()
 
         # here, we need to collect data with a DataCollector
+        self.datacollector.collect(self)
 
     def run_model(self, step_count=1):
         """Method that runs the model for a fixed number of steps"""
@@ -255,6 +272,19 @@ class CityModel(Model):
         for i in range(step_count):
             self.step()
 
-# Testing:
-# model = CityModel()
-# model.run_model()
+import sys
+from benchmarking import benchmark
+
+def main(argv):
+    if len(argv) != 1:
+        print ("usage: model.py <steps>")
+        return
+
+    model = CityModel()
+    proceed = benchmark(model, int(argv[0]))
+    if proceed:
+        model.run_model()
+
+if __name__=="__main__":
+    import sys
+    main(sys.argv[1:])

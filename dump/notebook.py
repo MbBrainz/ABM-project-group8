@@ -44,15 +44,20 @@ plt.plot(range(stepcount+1), model_df.movers_per_step, label = "Movers per step"
 plt.legend()
 plt.show()
 # %%
+# print(agent_df)
+# print(agent_df.loc[[stepcount], ["position"]])
+
 # width = 30 
 # height = 30
 
-
+# agents_x_coords = [i[0] for i in agent_df.loc[[stepcount], ["position"]]]
+# agents_y_coords = [i[1] for i in agent_df.loc[[stepcount], ["position"]]]
 
 # import numpy as np 
 # import scipy.stats as st
-# positions = np.vstack([width.ravel(), height.ravel()])
-# values = np.vstack(agents_x_coords, agents_y_coords])
+
+# positions = np.vstack([[range(width)], [range(height)]])
+# values = np.vstack([agents_x_coords, agents_y_coords])
 # kernel = st.gaussian_kde(values)
 # f = np.reshape(kernel(positions).T, width.shape)
 

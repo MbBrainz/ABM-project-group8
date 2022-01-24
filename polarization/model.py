@@ -247,6 +247,7 @@ class CityModel(Model):
             },
             agent_reporters={
                 "opinion": lambda x: x.opinion,
+                "position": lambda p: p.pos,
             }
         )
 

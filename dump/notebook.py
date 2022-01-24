@@ -5,7 +5,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from polarization.benchmarking import benchmark
 from polarization.model import CityModel
 import pandas as pd
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
 stepcount = 20
 model = CityModel(width = 30, height = 30)
@@ -35,6 +35,7 @@ print(model_df.head())
 print(model_df)
 
 # %%
+
 plt.plot(range(stepcount+1), model_df.cluster_coefficient, label = "Cluster Coefficient")
 plt.plot(range(stepcount+1), model_df.graph_modularity, label = "Modularity")
 plt.legend()
@@ -53,7 +54,7 @@ plt.show()
 # agents_x_coords = [i[0] for i in agent_df.loc[[stepcount], ["position"]]]
 # agents_y_coords = [i[1] for i in agent_df.loc[[stepcount], ["position"]]]
 
-# import numpy as np 
+# import numpy as np
 # import scipy.stats as st
 
 # positions = np.vstack([[range(width)], [range(height)]])

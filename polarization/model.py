@@ -217,12 +217,16 @@ class Resident(Agent):
 
 
 class CityModel(Model):
-    def __init__(self, width=5, height=5, m_barabasi=2, seed=711):
+    def __init__(self, width=5, height=5, m_barabasi=2, density=0.9):
         print("init")
         # grid variables
         self.width = width
         self.height = height
+<<<<<<< HEAD
+        self.density = density # some spots need to be left vacant
+=======
         self.density = 0.9 # some spots need to be left vacant
+>>>>>>> 8bf187ba6f1d0ab4ffe42fa53cb1c7f8afb4ab61
         self.m_barabasi = m_barabasi
         self.movers_per_step = 0
         self.opinion_threshold = 2
@@ -250,6 +254,7 @@ class CityModel(Model):
                 "position": lambda p: p.pos,
             }
         )
+        self.running = True
 
     def calculate_modularity(self):
         max_mod_communities = greedy_modularity_communities(self.graph)
@@ -280,7 +285,7 @@ class CityModel(Model):
         # here, we need to collect data with a DataCollector
         self.datacollector.collect(self)
 
-        #set the counter of movers per step back to zero 
+        #set the counter of movers per step back to zero
         self.movers_per_step = 0
 
     def run_model(self, step_count=1):
@@ -290,9 +295,24 @@ class CityModel(Model):
         for i in range(step_count):
             self.step()
 
-import sys
-#from benchmarking import benchmark
+from mesa.batchrunner import BatchRunnerMP
 
+def batchrun():
+    fixed_params = {"width": 10, "height": 10,}
+    var_params = {"density": [0.6, 0.8], "m_barabasi": [1,2,3]}
+
+    batch = BatchRunnerMP(CityModel,
+                          variable_parameters=var_params,
+                          fixed_parameters=fixed_params,
+                          display_progress=True)
+    batch.run_all()
+
+    return batch
+
+
+
+
+import sys
 def main(argv):
     if len(argv) != 1:
         print ("usage: model.py <steps>")

@@ -9,6 +9,7 @@ import random
 import networkx as nx
 from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community.quality import modularity
+from networkx.algorithms.cluster import average_clustering
 import numpy as np
 
 """This file should contain the model class.
@@ -25,7 +26,7 @@ random.seed(711)
 SOCIAL = 0.8
 NEIGHBORS = 1 - SOCIAL
 N_POTENTIAL_CONNECTIONS = 5
-FERMI_ALPHA = 1
+FERMI_ALPHA = 5
 FERMI_B = 3
 
 class Resident(Agent):
@@ -79,15 +80,17 @@ class Resident(Agent):
 
         # loop through social network and calculate influence
         for social in self.socials:
-            n_socials += 1
-            social_influence += social.opinion
+            if abs(social.opinion-self.opinion) < self.model.opinion_threshold:
+                social_influence += social.opinion 
+                n_socials += 1
         avg_social = social_influence / n_socials if n_socials != 0 else 0
 
         # loop through spatial neighbors and calculate influence
         for nbr in self.model.grid.get_neighbors(pos=self.pos,moore=True,include_center=False,radius=1):
-            n_nbrs += 1
-            nbr_influence += nbr.opinion
-        avg_nbr = nbr_influence / n_nbrs
+            if abs(nbr.opinion-self.opinion) < self.model.opinion_threshold:
+                n_nbrs += 1
+                nbr_influence += nbr.opinion
+        avg_nbr = nbr_influence / n_nbrs if n_nbrs != 0 else 0
 
         return avg_social, avg_nbr
 
@@ -192,7 +195,7 @@ class Resident(Agent):
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
-        if happiness < 0.5:
+        if happiness < 0.2:
             self.model.grid.move_to_empty(self)
             self.model.movers_per_step += 1
 
@@ -219,9 +222,10 @@ class CityModel(Model):
         # grid variables
         self.width = width
         self.height = height
-        self.density = 0.5 # some spots need to be left vacant
+        self.density = 0.9 # some spots need to be left vacant
         self.m_barabasi = m_barabasi
         self.movers_per_step = 0
+        self.opinion_threshold = 2
 
         self.schedule = RandomActivation(self)
         self.grid = SingleGrid(self.width, self.height, torus=True)
@@ -238,10 +242,11 @@ class CityModel(Model):
             model_reporters={
                 "graph_modularity": self.calculate_modularity,
                 "movers_per_step": lambda m: m.movers_per_step,
+                "cluster_coefficient": self.calculate_clustercoef,
 
             },
             agent_reporters={
-                "opinion": lambda x: x.opinion
+                "opinion": lambda x: x.opinion,
             }
         )
 
@@ -249,6 +254,11 @@ class CityModel(Model):
         max_mod_communities = greedy_modularity_communities(self.graph)
         mod = modularity(self.graph, max_mod_communities)
         return mod
+    
+    def calculate_clustercoef(self):
+        cluster_coefficient = average_clustering(self.graph)
+        return cluster_coefficient
+
 
     def initialize_population(self):
         for cell in self.grid.coord_iter():

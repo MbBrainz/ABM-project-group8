@@ -34,10 +34,10 @@ class Resident(Agent):
 
         # Variable attributes:
         self.pos = pos
-        self.view = self.random.uniform(0,10) # we can use different distributions if we want to
+        self.opinion = self.random.uniform(0,10) # we can use different distributions if we want to
 
         # Fixed attributes
-        # set parameters for changing political view
+        # set parameters for changing political opinion
         self.vulnerability = self.random.uniform(0,1) # we can use different distributions if we want to
         self.weight_own = 1 - self.vulnerability
         self.weight_socials = SOCIAL * self.vulnerability
@@ -64,7 +64,7 @@ class Resident(Agent):
 
     def get_external_influences(self):
         """Calculate the external influence for an agent.
-        Average view of friends and average view of neighbors is calculated.
+        Average opinion of friends and average opinion of neighbors is calculated.
 
         Args:
             socials_ids (list of Agent() objects): list of friends
@@ -80,34 +80,34 @@ class Resident(Agent):
         # loop through social network and calculate influence
         for social in self.socials:
             n_socials += 1
-            social_influence += social.view
+            social_influence += social.opinion
         avg_social = social_influence / n_socials if n_socials != 0 else 0
 
         # loop through spatial neighbors and calculate influence
         for nbr in self.model.grid.get_neighbors(pos=self.pos,moore=True,include_center=False,radius=1):
             n_nbrs += 1
-            nbr_influence += nbr.view
+            nbr_influence += nbr.opinion
         avg_nbr = nbr_influence / n_nbrs
 
         return avg_social, avg_nbr
 
-    def update_view(self):
-        """Update political view with a weighted average of own view, friends' view, and neighbors' view.
+    def update_opinion(self):
+        """Update political opinion with a weighted average of own opinion, friends' opinion, and neighbors' opinion.
             Vulnerability determines strength of external and internal influence.
             External influence is divided into 80% friends, 20% neighbors.
         """
 
-        # update own political view based on external and internal influence
+        # update own political opinion based on external and internal influence
         social_infl, nbr_infl = self.get_external_influences()
 
-        new_view = (self.weight_own * self.view) + \
+        new_opinion = (self.weight_own * self.opinion) + \
             (self.weight_socials * social_infl) + \
             (self.weight_neighbors * nbr_infl)
-        self.view = new_view
+        self.opinion = new_opinion
 
     def new_social(self):
         """Adds a new random connection from the agent with a probability determined by the Fermi-Dirac distribution.
-            Choice of addition depends on similarity in political view.
+            Choice of addition depends on similarity in political opinion.
 
             Args:
                 socials_ids (list): IDs of social connections of agent
@@ -129,7 +129,7 @@ class Resident(Agent):
 
     def remove_social(self):
         """Removes a few random connections from the agent with a probability determined by the Fermi-Dirac distribution.
-            Choice of removal depends on similarity in political view.
+            Choice of removal depends on similarity in political opinion.
 
             Args:
                 socials_ids (list): IDs of social connections of agent
@@ -156,7 +156,7 @@ class Resident(Agent):
             potential_agent (Resident): the resident to consider
             method (str): "ADD" or "REMOVE"
         """
-        p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - potential_agent.view) - FERMI_B)))
+        p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - potential_agent.opinion) - FERMI_B)))
 
         if method == "ADD":
             if p_ij > random.random():
@@ -185,11 +185,11 @@ class Resident(Agent):
         of moving increase as the time since the last move increases.
         """
 
-        # get the average view of the neighbours (nbr_infl)
+        # get the average opinion of the neighbours (nbr_infl)
         social_infl, nbr_infl = self.get_external_influences()
 
-        # compare your view with the average of your neighbours using the fermi dirac equation.
-        happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.view - nbr_infl) - FERMI_B)))
+        # compare your opinion with the average of your neighbours using the fermi dirac equation.
+        happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < 0.5:
@@ -207,8 +207,8 @@ class Resident(Agent):
         #update grid
         self.move_pos()
 
-        #update view
-        self.update_view()
+        #update opinion
+        self.update_opinion()
 
 
 class CityModel(Model):
@@ -237,7 +237,7 @@ class CityModel(Model):
 
             },
             agent_reporters={
-                "view": lambda x: x.view
+                "opinion": lambda x: x.opinion
             }
         )
 

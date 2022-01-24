@@ -194,6 +194,8 @@ class Resident(Agent):
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < 0.5:
             self.model.grid.move_to_empty(self)
+            self.model.movers_per_step += 1
+
 
 
     def step(self):
@@ -217,8 +219,9 @@ class CityModel(Model):
         # grid variables
         self.width = width
         self.height = height
-        self.density = 0.9 # some spots need to be left vacant
+        self.density = 0.5 # some spots need to be left vacant
         self.m_barabasi = m_barabasi
+        self.movers_per_step = 0
 
         self.schedule = RandomActivation(self)
         self.grid = SingleGrid(self.width, self.height, torus=True)
@@ -234,6 +237,7 @@ class CityModel(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 "graph_modularity": self.calculate_modularity,
+                "movers_per_step": lambda m: m.movers_per_step,
 
             },
             agent_reporters={
@@ -265,6 +269,9 @@ class CityModel(Model):
         # here, we need to collect data with a DataCollector
         self.datacollector.collect(self)
 
+        #set the counter of movers per step back to zero 
+        self.movers_per_step = 0
+
     def run_model(self, step_count=1):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
@@ -273,7 +280,7 @@ class CityModel(Model):
             self.step()
 
 import sys
-from benchmarking import benchmark
+#from benchmarking import benchmark
 
 def main(argv):
     if len(argv) != 1:
@@ -281,9 +288,12 @@ def main(argv):
         return
 
     model = CityModel()
-    proceed = benchmark(model, int(argv[0]))
+    # proceed = benchmark(model, int(argv[0]))
+    proceed = True
     if proceed:
-        model.run_model()
+        model.run_model(step_count=int(argv[0]))
+        print(model.datacollector.get_agent_vars_dataframe())
+        print(model.datacollector.get_model_vars_dataframe())
 
 if __name__=="__main__":
     import sys

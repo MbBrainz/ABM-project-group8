@@ -1,9 +1,9 @@
 
-from ast import arg
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
+from tqdm import tqdm, tnrange, trange
 
 import random
 import networkx as nx
@@ -11,6 +11,9 @@ from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community.quality import modularity
 from networkx.algorithms.cluster import average_clustering
 import numpy as np
+from polarization.benchmarking import benchmark
+
+from util import ModelParams, default_params
 
 """This file should contain the model class.
 If the file gets large, it may make sense to move the complex bits into other files,
@@ -80,14 +83,14 @@ class Resident(Agent):
 
         # loop through social network and calculate influence
         for social in self.socials:
-            if abs(social.opinion-self.opinion) < self.model.opinion_threshold:
-                social_influence += social.opinion 
+            if abs(social.opinion-self.opinion) < self.model.params.opinion_max_diff:
+                social_influence += social.opinion
                 n_socials += 1
         avg_social = social_influence / n_socials if n_socials != 0 else 0
 
         # loop through spatial neighbors and calculate influence
         for nbr in self.model.grid.get_neighbors(pos=self.pos,moore=True,include_center=False,radius=1):
-            if abs(nbr.opinion-self.opinion) < self.model.opinion_threshold:
+            if abs(nbr.opinion-self.opinion) < self.model.params.opinion_max_diff:
                 n_nbrs += 1
                 nbr_influence += nbr.opinion
         avg_nbr = nbr_influence / n_nbrs if n_nbrs != 0 else 0
@@ -217,30 +220,19 @@ class Resident(Agent):
 
 
 class CityModel(Model):
-    def __init__(self, width=5, height=5, m_barabasi=2, density=0.9):
-        print("init")
+    def __init__(self, params: ModelParams = default_params):
         # grid variables
-        self.width = width
-        self.height = height
-<<<<<<< HEAD
-        self.density = density # some spots need to be left vacant
-=======
-        self.density = 0.9 # some spots need to be left vacant
->>>>>>> 8bf187ba6f1d0ab4ffe42fa53cb1c7f8afb4ab61
-        self.m_barabasi = m_barabasi
-        self.movers_per_step = 0
-        self.opinion_threshold = 2
-
+        self.params = params
         self.schedule = RandomActivation(self)
-        self.grid = SingleGrid(self.width, self.height, torus=True)
-
+        self.movers_per_step = 0
         self.n_agents = 0
 
         # setting up the Residents:
+        self.grid = SingleGrid(self.params.sidelength, self.params.sidelength, torus=True)
         self.initialize_population()
 
         # build a social network
-        self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
+        self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.params.m_barabasi)
 
         self.datacollector = DataCollector(
             model_reporters={
@@ -260,7 +252,7 @@ class CityModel(Model):
         max_mod_communities = greedy_modularity_communities(self.graph)
         mod = modularity(self.graph, max_mod_communities)
         return mod
-    
+
     def calculate_clustercoef(self):
         cluster_coefficient = average_clustering(self.graph)
         return cluster_coefficient
@@ -271,7 +263,7 @@ class CityModel(Model):
             x = cell[1]
             y = cell[2]
 
-            if self.random.uniform(0,1) < self.density:
+            if self.random.uniform(0,1) < self.params.density:
                 agent = Resident(self.n_agents, self, (x,y))
                 self.grid.position_agent(agent, *(x,y))
                 self.schedule.add(agent)
@@ -288,41 +280,27 @@ class CityModel(Model):
         #set the counter of movers per step back to zero
         self.movers_per_step = 0
 
-    def run_model(self, step_count=1):
+    def run_model(self, step_count=1, desc="", pos=0):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
-        for i in range(step_count):
+        for i in trange(step_count, desc=desc, position=pos):
             self.step()
-
-from mesa.batchrunner import BatchRunnerMP
-
-def batchrun():
-    fixed_params = {"width": 10, "height": 10,}
-    var_params = {"density": [0.6, 0.8], "m_barabasi": [1,2,3]}
-
-    batch = BatchRunnerMP(CityModel,
-                          variable_parameters=var_params,
-                          fixed_parameters=fixed_params,
-                          display_progress=True)
-    batch.run_all()
-
-    return batch
-
-
 
 
 import sys
 def main(argv):
+    steps=1
     if len(argv) != 1:
         print ("usage: model.py <steps>")
-        return
+    else:
+        steps=int(argv[0])
 
     model = CityModel()
-    # proceed = benchmark(model, int(argv[0]))
+    proceed = benchmark(model, steps)
     proceed = True
     if proceed:
-        model.run_model(step_count=int(argv[0]))
+        model.run_model(step_count=steps)
         print(model.datacollector.get_agent_vars_dataframe())
         print(model.datacollector.get_model_vars_dataframe())
 

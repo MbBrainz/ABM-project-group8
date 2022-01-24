@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 stepcount = 20
-model = CityModel(width = 30, height = 30)
+model = CityModel()
 print(benchmark(model, step_count=stepcount))
 
 #%%
@@ -48,7 +48,7 @@ plt.show()
 # print(agent_df)
 # print(agent_df.loc[[stepcount], ["position"]])
 
-# width = 30 
+# width = 30
 # height = 30
 
 # agents_x_coords = [i[0] for i in agent_df.loc[[stepcount], ["position"]]]

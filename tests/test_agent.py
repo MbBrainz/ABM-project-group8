@@ -7,20 +7,19 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from polarization.model import CityModel, Resident
 from test_model import clear_model
-
+from util import ModelParams
 
 
 global N_POTENTIAL_CONNECTIONS
 N_POTENTIAL_CONNECTIONS = 1
 
-
+test_params = ModelParams(sidelength=2, density=1, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2)
 class TestResident(unittest.TestCase):
     def setUp(self) -> None:
-        self.model = CityModel(width=2, height=2, m_barabasi=2, seed=711)
+        self.model = CityModel(test_params)
         clear_model(self.model)
-        self.model.density = 1
         self.model.initialize_population()
-        self.model.graph = barabasi_albert_graph(n=self.model.n_agents, m=self.model.m_barabasi)
+        self.model.graph = barabasi_albert_graph(n=self.model.n_agents, m=self.model.params.m_barabasi)
 
         self.test_agent = self.model.schedule.agents[0]
 
@@ -34,8 +33,8 @@ class TestResident(unittest.TestCase):
         assert type(self.test_agent.model) == CityModel
         assert self.test_agent.pos != 0
         assert self.test_agent.pos == (0, 0)
-        assert len(self.model.schedule.agents) == self.model.width * \
-            self.model.height
+        assert len(self.model.schedule.agents) == self.model.params.sidelength * \
+            self.model.params.sidelength
 
     def test_new_social_accept_all(self):
         self.patch_random()
@@ -75,7 +74,7 @@ class TestResident(unittest.TestCase):
 
         self.model.graph = complete_graph(n=self.model.n_agents)
         assert len(to_edgelist(self.model.graph)
-                   ) > self.model.width * self.model.height
+                   ) > self.model.params.sidelength * self.model.params.sidelength
         self.test_agent.remove_social()
 
         assert ((self.test_agent.unique_id, 1) in to_edgelist(
@@ -88,7 +87,7 @@ class TestResident(unittest.TestCase):
         self.model.schedule.remove(self.model.schedule.agents[-1])
         self.model.step()
         agent_df = self.model.datacollector.get_agent_vars_dataframe()
-        assert agent_df.shape == (3, 1), "shape is different than expected"
+        assert agent_df.shape == (3, 2), "shape is different than expected"
 
     def patch_random(self):
         self.test_resident = self.model.schedule.agents[1]

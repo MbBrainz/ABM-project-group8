@@ -12,10 +12,11 @@ pytest = "*"
 scipy = "*"
 seaborn = "*"
 simpy = "*"
-Mesa = "*"
+mesa = "*"
 
 [dev-packages]
 autopep8 = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.9"

@@ -30,14 +30,13 @@ def init_and_start_model(params: ModelParams, parallel=True):
     Returns:
         tuple[DataFrame, DataFrame]: agent_df and model_df. These are not used in parallel simulation as it saves the persists the data after every sim
     """
-
     model = CityModel(params)
     pos = 0
     if parallel:
         current = multiprocessing.current_process()
         pos = current._identity[0]-1
 
-    model.run_model(10, desc=f"sim {pos}", pos=pos)
+    model.run_model(10, desc=f"core #{pos}", pos=pos)
     agent_df = model.datacollector.get_agent_vars_dataframe()
     agent_df.to_pickle(f"{DATA_DIR}_agentdf_{params.to_dir()}.pkl")
 

@@ -31,7 +31,7 @@ def plot_fermidirac():
     plt.show()
 
 
-ModelParams = namedtuple("ModelParams", [
+BaseModelParams = namedtuple("ModelParams", [
     "sidelength",
     "density",
     "m_barabasi",
@@ -40,6 +40,14 @@ ModelParams = namedtuple("ModelParams", [
     "fermi_alpha",
     "fermi_b",
     "opinion_max_diff",
+    "total_steps"
 ])
 
-default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2)
+class ModelParams(BaseModelParams):
+    def to_dir(self):
+        filedir=""
+        for item in self:
+            filedir += str(item).replace(".","_") + "-"
+        return filedir
+
+default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10)

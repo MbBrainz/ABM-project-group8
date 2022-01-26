@@ -1,14 +1,19 @@
 #%%
 import os, sys
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
+from util import ModelParams
 from polarization.benchmarking import benchmark
 from polarization.model import CityModel
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import cm
 
-stepcount = 20
-model = CityModel()
+stepcount = 10
+params = ModelParams(sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2)
+model = CityModel(params)
 print(benchmark(model, step_count=stepcount))
 
 #%%
@@ -17,12 +22,14 @@ model.run_model(step_count=stepcount)
 agent_df = pd.DataFrame(model.datacollector.get_agent_vars_dataframe())
 model_df = pd.DataFrame(model.datacollector.get_model_vars_dataframe())
 
-
 # %%
 print(agent_df.head())
-print(agent_df.loc[[1], ["opinion"]])
 print(agent_df.describe())
+print(model_df.head())
 
+#%%
+
+#HISTOGRAMS: OPINION DISTRIBUTION
 plt.hist(agent_df.loc[[1], ["opinion"]], density = True)
 plt.title("Initial belief distribution")
 plt.show()
@@ -32,43 +39,61 @@ plt.title("End belief distribution")
 plt.show()
 # %%
 print(model_df.head())
-print(model_df)
 
 # %%
 
+#LINE PLOTS GRAPH ANALYSIS
 plt.plot(range(stepcount+1), model_df.cluster_coefficient, label = "Cluster Coefficient")
 plt.plot(range(stepcount+1), model_df.graph_modularity, label = "Modularity")
 plt.legend()
+plt.title("Graph Analysis")
 plt.show()
-# %%
+
+#LINE PLOTS MOVERS PER STEP
 plt.plot(range(stepcount+1), model_df.movers_per_step, label = "Movers per step")
 plt.legend()
+plt.title("Number of movers per step")
 plt.show()
 # %%
-# print(agent_df)
-# print(agent_df.loc[[stepcount], ["position"]])
 
-# width = 30
-# height = 30
+# %%
+#3D SCATTER PLOT
+#before
+pos_col = pd.DataFrame(agent_df.loc[[1], ["position"]])
+pos_col_list = pos_col["position"].tolist()
+opinion_col = pd.DataFrame(agent_df.loc[[1], ["opinion"]])
+opinion_col_list = opinion_col["opinion"].tolist()
 
-# agents_x_coords = [i[0] for i in agent_df.loc[[stepcount], ["position"]]]
-# agents_y_coords = [i[1] for i in agent_df.loc[[stepcount], ["position"]]]
+ax = plt.axes(projection='3d')
+agents_x_coords = [i[0] for i in pos_col_list]
+agents_y_coords = [i[1] for i in pos_col_list]
+agents_opinion = [i for i in opinion_col_list]
 
-# import numpy as np
-# import scipy.stats as st
+ax.scatter3D(agents_x_coords, agents_y_coords, agents_opinion, c=agents_opinion, cmap=cm.coolwarm)
+plt.title("Distribution before")
+plt.xlabel("grid x")
+plt.ylabel("grid y")
+plt.show()
 
-# positions = np.vstack([[range(width)], [range(height)]])
-# values = np.vstack([agents_x_coords, agents_y_coords])
-# kernel = st.gaussian_kde(values)
-# f = np.reshape(kernel(positions).T, width.shape)
+#after
+pos_col = pd.DataFrame(agent_df.loc[[stepcount], ["position"]])
+pos_col_list = pos_col["position"].tolist()
+opinion_col = pd.DataFrame(agent_df.loc[[stepcount], ["opinion"]])
+opinion_col_list = opinion_col["opinion"].tolist()
 
-# fig = plt.figure(figsize=(13, 7))
-# ax = plt.axes(projection='3d')
-# surf = ax.plot_surface(range(width), range(height), rstride=1, cstride=1, cmap='coolwarm', edgecolor='none')
-# ax.set_xlabel('width')
-# ax.set_ylabel('height')
-# ax.set_zlabel('Political opinion')
-# ax.set_title('Surface plot of political opinion over the grid at the end')
-# fig.colorbar(surf, shrink=0.5, aspect=5) # add color bar indicating the PDF
-# ax.view_init(60, 35)
+ax = plt.axes(projection='3d')
+agents_x_coords = [i[0] for i in pos_col_list]
+agents_y_coords = [i[1] for i in pos_col_list]
+agents_opinion = [i for i in opinion_col_list]
+
+ax.scatter3D(agents_x_coords, agents_y_coords, agents_opinion, c=agents_opinion, cmap=cm.coolwarm)
+plt.title("Distribution after")
+plt.xlabel("grid x")
+plt.ylabel("grid y")
+plt.show()
+
+# %%
+
+# %%
+
 # %%

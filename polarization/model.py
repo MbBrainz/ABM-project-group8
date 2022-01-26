@@ -198,7 +198,7 @@ class Resident(Agent):
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
-        if happiness < 0.2:
+        if happiness < 0.8:
             self.model.grid.move_to_empty(self)
             self.model.movers_per_step += 1
 
@@ -239,6 +239,7 @@ class CityModel(Model):
                 "graph_modularity": self.calculate_modularity,
                 "movers_per_step": lambda m: m.movers_per_step,
                 "cluster_coefficient": self.calculate_clustercoef,
+                "edges": self.get_graph_dict,
 
             },
             agent_reporters={
@@ -256,6 +257,10 @@ class CityModel(Model):
     def calculate_clustercoef(self):
         cluster_coefficient = average_clustering(self.graph)
         return cluster_coefficient
+    
+    def get_graph_dict(self):
+        graph_dict = nx.convert.to_dict_of_dicts(self.graph)
+        return graph_dict
 
 
     def initialize_population(self):

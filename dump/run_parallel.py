@@ -10,7 +10,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from util import ModelParams
 from polarization.model import CityModel
 
-DATA_DIR = "./data/"
+DATA_DIR = "./dump/data/"
 
 def load_pickles(dirs:list[str]) -> pd.DataFrame:
     df_list = []
@@ -93,7 +93,9 @@ def example():
 
     # here the files are read. This should be done separately from simulation, e.g. at visualisation.
     params = params_list[0]
-    read_dataframe(params)
+    agent_df, model_df = read_dataframe(params)
+
+    print(model_df)
 
    # %%
 if __name__ == "__main__":

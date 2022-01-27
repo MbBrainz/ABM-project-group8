@@ -172,19 +172,6 @@ class Resident(Agent):
             if p_ij < random.random():
                 self.model.graph.remove_edge(self.unique_id, potential_agent.unique_id)
 
-    def normal_dist(self, x, mu, std):
-        # NOT THIS ONE, FERMI-DIRAC !!!!
-        """Calculates probability from a normal distribution with mean mu and standard deviation sigma.
-            Args:
-                x (float): value to calculate probability for
-                mu (float): distribution mean
-                std (float): distribution standard deviation
-
-            Returns:
-            float: probability for x under normal distribution
-        """
-        return (1 / (std * np.sqrt(2* np.pi)))* np.exp(-0.5*((x-mu)/std)**2)
-
     def move_pos(self):
         """
         Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
@@ -198,7 +185,7 @@ class Resident(Agent):
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
-        if happiness < 0.8:
+        if happiness < self.model.params.happiness_threshold:
             self.model.grid.move_to_empty(self)
             self.model.movers_per_step += 1
 
@@ -257,7 +244,7 @@ class CityModel(Model):
     def calculate_clustercoef(self):
         cluster_coefficient = average_clustering(self.graph)
         return cluster_coefficient
-    
+
     def get_graph_dict(self):
         graph_dict = nx.convert.to_dict_of_dicts(self.graph)
         return graph_dict
@@ -289,7 +276,7 @@ class CityModel(Model):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
-        for i in trange(step_count, desc=desc, position=pos):
+        for i in trange(self.params.total_steps, desc=desc, position=pos):
             self.step()
 
 

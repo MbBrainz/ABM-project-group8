@@ -79,13 +79,12 @@ def read_dataframe(params):
 def example():
     print("This is an exmple to show how paralisation should be used :)")
     params_list = [
-        ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
-        ModelParams(sidelength=10, density=0.6, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
-        ModelParams(sidelength=10, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
-        ModelParams(sidelength=10, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
-        ModelParams(sidelength=10, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
-        ModelParams(sidelength=10, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
-        ModelParams(sidelength=10, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10),
+        ModelParams(sidelength=20, density=0.6, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.8),
+        ModelParams(sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.8),
+        ModelParams(sidelength=20, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.8),
+        ModelParams(sidelength=20, density=0.9, m_barabasi=2, social_factor=0.6, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.8),
+        ModelParams(sidelength=20, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=10, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.8),
+        ModelParams(sidelength=20, density=0.9, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.6),
     ]
 
     simulate_parallel(params_list)
@@ -94,7 +93,7 @@ def example():
     params = params_list[0]
     agent_df, model_df = read_dataframe(params)
 
-    print(model_df)
+    # print(model_df)
 
    # %%
 if __name__ == "__main__":

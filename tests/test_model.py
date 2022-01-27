@@ -8,11 +8,10 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 def clear_model(model: CityModel):
-    model.density = 1
     model.agents = []
     model.n_agents = 0
     model.schedule = RandomActivation(model)
-    model.grid = SingleGrid(model.width, model.height, torus=False)
+    model.grid = SingleGrid(model.params.sidelength, model.params.sidelength, torus=False)
 
 class TestModel(unittest.TestCase):
 

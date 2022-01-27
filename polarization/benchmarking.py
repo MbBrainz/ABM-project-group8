@@ -3,12 +3,10 @@ from time import perf_counter
 import numpy as np
 import matplotlib.pyplot as plt
 
-def time_model_step(width, height, model):
+def time_model_step(model):
     """Times the next step of a model
 
     Args:
-        width ([type]): [description]
-        height ([type]): [description]
         model (CityModel): model to time
 
     Returns:
@@ -32,7 +30,7 @@ def benchmark(model, step_count):
     Returns:
         Bool: True if user inputs 'y', false if user inputs 'n'
     """
-    benchmark = time_model_step(model.width, model.height, model)
+    benchmark = time_model_step(model)
     print(f"The first step of this model took {benchmark:.3f} seconds")
     print(f"This sinulation is going to take arount {step_count*benchmark:.2f} seconds. Do you want to proceed? (y of n)")
     proceed = ""

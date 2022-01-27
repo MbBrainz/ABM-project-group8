@@ -1,15 +1,19 @@
 
-from ast import arg
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
+from tqdm import tqdm, tnrange, trange
 
 import random
 import networkx as nx
 from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community.quality import modularity
+from networkx.algorithms.cluster import average_clustering
 import numpy as np
+from polarization.benchmarking import benchmark
+
+from util import ModelParams, default_params
 
 """This file should contain the model class.
 If the file gets large, it may make sense to move the complex bits into other files,
@@ -25,7 +29,7 @@ random.seed(711)
 SOCIAL = 0.8
 NEIGHBORS = 1 - SOCIAL
 N_POTENTIAL_CONNECTIONS = 5
-FERMI_ALPHA = 1
+FERMI_ALPHA = 5
 FERMI_B = 3
 
 class Resident(Agent):
@@ -79,15 +83,17 @@ class Resident(Agent):
 
         # loop through social network and calculate influence
         for social in self.socials:
-            n_socials += 1
-            social_influence += social.opinion
+            if abs(social.opinion-self.opinion) < self.model.params.opinion_max_diff:
+                social_influence += social.opinion
+                n_socials += 1
         avg_social = social_influence / n_socials if n_socials != 0 else 0
 
         # loop through spatial neighbors and calculate influence
         for nbr in self.model.grid.get_neighbors(pos=self.pos,moore=True,include_center=False,radius=1):
-            n_nbrs += 1
-            nbr_influence += nbr.opinion
-        avg_nbr = nbr_influence / n_nbrs
+            if abs(nbr.opinion-self.opinion) < self.model.params.opinion_max_diff:
+                n_nbrs += 1
+                nbr_influence += nbr.opinion
+        avg_nbr = nbr_influence / n_nbrs if n_nbrs != 0 else 0
 
         return avg_social, avg_nbr
 
@@ -166,19 +172,6 @@ class Resident(Agent):
             if p_ij < random.random():
                 self.model.graph.remove_edge(self.unique_id, potential_agent.unique_id)
 
-    def normal_dist(self, x, mu, std):
-        # NOT THIS ONE, FERMI-DIRAC !!!!
-        """Calculates probability from a normal distribution with mean mu and standard deviation sigma.
-            Args:
-                x (float): value to calculate probability for
-                mu (float): distribution mean
-                std (float): distribution standard deviation
-
-            Returns:
-            float: probability for x under normal distribution
-        """
-        return (1 / (std * np.sqrt(2* np.pi)))* np.exp(-0.5*((x-mu)/std)**2)
-
     def move_pos(self):
         """
         Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
@@ -192,8 +185,10 @@ class Resident(Agent):
         happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
-        if happiness < 0.5:
+        if happiness < self.model.params.happiness_threshold:
             self.model.grid.move_to_empty(self)
+            self.model.movers_per_step += 1
+
 
 
     def step(self):
@@ -212,46 +207,55 @@ class Resident(Agent):
 
 
 class CityModel(Model):
-    def __init__(self, width=5, height=5, m_barabasi=2, seed=711):
-        print("init")
+    def __init__(self, params: ModelParams = default_params):
         # grid variables
-        self.width = width
-        self.height = height
-        self.density = 0.9 # some spots need to be left vacant
-        self.m_barabasi = m_barabasi
-
+        self.params = params
         self.schedule = RandomActivation(self)
-        self.grid = SingleGrid(self.width, self.height, torus=True)
-
+        self.movers_per_step = 0
         self.n_agents = 0
 
         # setting up the Residents:
+        self.grid = SingleGrid(self.params.sidelength, self.params.sidelength, torus=True)
         self.initialize_population()
 
         # build a social network
-        self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
+        self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.params.m_barabasi)
 
         self.datacollector = DataCollector(
             model_reporters={
                 "graph_modularity": self.calculate_modularity,
+                "movers_per_step": lambda m: m.movers_per_step,
+                "cluster_coefficient": self.calculate_clustercoef,
+                "edges": self.get_graph_dict,
 
             },
             agent_reporters={
-                "opinion": lambda x: x.opinion
+                "opinion": lambda x: x.opinion,
+                "position": lambda p: p.pos,
             }
         )
+        self.running = True
 
     def calculate_modularity(self):
         max_mod_communities = greedy_modularity_communities(self.graph)
         mod = modularity(self.graph, max_mod_communities)
         return mod
 
+    def calculate_clustercoef(self):
+        cluster_coefficient = average_clustering(self.graph)
+        return cluster_coefficient
+
+    def get_graph_dict(self):
+        graph_dict = nx.convert.to_dict_of_dicts(self.graph)
+        return graph_dict
+
+
     def initialize_population(self):
         for cell in self.grid.coord_iter():
             x = cell[1]
             y = cell[2]
 
-            if self.random.uniform(0,1) < self.density:
+            if self.random.uniform(0,1) < self.params.density:
                 agent = Resident(self.n_agents, self, (x,y))
                 self.grid.position_agent(agent, *(x,y))
                 self.schedule.add(agent)
@@ -265,25 +269,32 @@ class CityModel(Model):
         # here, we need to collect data with a DataCollector
         self.datacollector.collect(self)
 
-    def run_model(self, step_count=1):
+        #set the counter of movers per step back to zero
+        self.movers_per_step = 0
+
+    def run_model(self, step_count=1, desc="", pos=0):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
-        for i in range(step_count):
+        for i in trange(self.params.total_steps, desc=desc, position=pos):
             self.step()
 
-import sys
-from benchmarking import benchmark
 
+import sys
 def main(argv):
+    steps=1
     if len(argv) != 1:
         print ("usage: model.py <steps>")
-        return
+    else:
+        steps=int(argv[0])
 
     model = CityModel()
-    proceed = benchmark(model, int(argv[0]))
+    proceed = benchmark(model, steps)
+    proceed = True
     if proceed:
-        model.run_model()
+        model.run_model(step_count=steps)
+        print(model.datacollector.get_agent_vars_dataframe())
+        print(model.datacollector.get_model_vars_dataframe())
 
 if __name__=="__main__":
     import sys

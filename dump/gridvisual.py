@@ -1,5 +1,5 @@
 #this is just a copy of the tutorial on mesa for interactive grid visualisation
-
+#%%
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
@@ -18,7 +18,7 @@ grid= CanvasGrid(agent_portrayal,10,10,500,500)
 server=ModularServer(CityModel,
                     [grid],
                     "City Model",
-                    {"N":100, "width":10, "height":10})
+                    {"width":5, "height":5,"m_barabasi":2})
 server.port=8521
 server.launch()
 

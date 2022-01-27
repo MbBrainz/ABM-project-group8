@@ -1,18 +1,39 @@
 #this is just a copy of the tutorial on mesa for interactive grid visualisation
-# do we even want this?
+
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
-
 from mesa.visualization.modules import ChartModule
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from polarization.model import CityModel
 
+#the simplest form of this:
+def agent_portrayal(agent):
+    portrayal = {"Shape": "sqaure",
+                 "Color":"red",
+                 "Filled": "true",
+                 "r": 0.5}
+    return portrayal
+grid= CanvasGrid(agent_portrayal,10,10,500,500)
+server=ModularServer(CityModel,
+                    [grid],
+                    "City Model",
+                    {"N":100, "width":10, "height":10})
+server.port=8521
+server.launch()
+
+
+
+
+#%%
 # we actually don't want an agent portrayal but a colour gradient of the 
 # belief of the opinion. Not sure if possible to integrate colormaps
+# so have just defined a color for each fraction of the range
+
+#can opinion be called just like agent.opinion?
 
 def agent_portrayal(agent):
-    portrayal = {"Shape": "circle",
+    portrayal = {"Shape": "sqaure",
                  "Filled": "true",
                  "r": 0.5}
 
@@ -49,8 +70,6 @@ chart = ChartModule([{"Label":"move_per_step",
                      "Color":"Black"}],
                      data_collector_name='datacollector')
 
-
-#not sure if this dict is correct
 server = ModularServer(CityModel,
                        [grid,chart],
                         "City Model",

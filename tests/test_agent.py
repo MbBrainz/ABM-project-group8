@@ -7,13 +7,13 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from polarization.model import CityModel, Resident
 from test_model import clear_model
-from util import ModelParams
+from util import ModelParams, default_params
 
 
 global N_POTENTIAL_CONNECTIONS
 N_POTENTIAL_CONNECTIONS = 1
 
-test_params = ModelParams(sidelength=2, density=1, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2)
+test_params = default_params
 class TestResident(unittest.TestCase):
     def setUp(self) -> None:
         self.model = CityModel(test_params)

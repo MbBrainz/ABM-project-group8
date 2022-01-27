@@ -51,4 +51,6 @@ class ModelParams(BaseModelParams):
             filedir += str(item).replace(".","_") + "-"
         return filedir
 
+
+
 default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10, happiness_threshold=0.8)

@@ -8,7 +8,7 @@ import random
 random.seed(102923)
 #%%
 # i don't really want to have to run the model again, I just want data from the data collector
-model = CityModel(50, 10, 10)
+model = CityModel()
 for i in range(20):
     model.step()
 
@@ -16,7 +16,7 @@ agent_opinion = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():
     cell_content,x,y = cell
     #not sure exactly how to call the opinion attribute
-    agent_opinion = x.opinion
+    agent_opinion = cell_content.opinion
     grid_opinion[x][y] = agent_opinion
 
 plt.set_cmap('bwr')

@@ -61,7 +61,7 @@ def simulate_parallel(params_list: list[ModelParams]):
     pool.close()
     pool.join()
 
-def read_dataframe(params):
+def read_dataframe(params, dir=DATA_DIR):
     """Reads dataframe from .pkl file that is created by the simulate_parallel function. It uses *params to see get the matching directory
 
     Args:
@@ -70,9 +70,9 @@ def read_dataframe(params):
     Returns:
         tuple(Dataframe,Dataframe): agent dataframe[0] and model dataframe[1]
     """
-    agent_dir = f"{DATA_DIR}_agentdf_{params.to_dir()}.pkl"
+    agent_dir = f"{dir}_agentdf_{params.to_dir()}.pkl"
     agent_df  = pd.read_pickle(agent_dir)
-    model_dir = f"{DATA_DIR}_modeldf_{params.to_dir()}.pkl"
+    model_dir = f"{dir}_modeldf_{params.to_dir()}.pkl"
     model_df  = pd.read_pickle(model_dir)
     return (agent_df, model_df)
 

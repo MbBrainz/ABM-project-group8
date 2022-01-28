@@ -11,7 +11,6 @@ from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community.quality import modularity
 from networkx.algorithms.cluster import average_clustering
 import numpy as np
-from polarization.benchmarking import benchmark
 
 from util import ModelParams, default_params
 
@@ -289,12 +288,9 @@ def main(argv):
         steps=int(argv[0])
 
     model = CityModel()
-    proceed = benchmark(model, steps)
-    proceed = True
-    if proceed:
-        model.run_model(step_count=steps)
-        print(model.datacollector.get_agent_vars_dataframe())
-        print(model.datacollector.get_model_vars_dataframe())
+    # # proceed = benchmark(model, int(argv[0]))
+    # if proceed:
+    model.run_model()
 
 if __name__=="__main__":
     import sys

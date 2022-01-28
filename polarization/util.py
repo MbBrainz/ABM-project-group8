@@ -1,6 +1,7 @@
 from collections import namedtuple
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 def fermi_dirac_graph(d, FERMI_ALPHA, FERMI_B):
     """
@@ -51,6 +52,24 @@ class ModelParams(BaseModelParams):
             filedir += str(item).replace(".","_") + "-"
         return filedir
 
-
-
 default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10, happiness_threshold=0.8)
+
+def read_dataframe(params, dir="./data/"):
+    """Reads dataframe from .pkl file that is created by the simulate_parallel function. It uses *params to see get the matching directory
+
+    Args:
+        params (ModelParams): Parameters that you want to read the data for
+
+    Returns:
+        tuple(Dataframe,Dataframe): agent dataframe[0] and model dataframe[1]
+    """
+    agent_dir = f"{dir}_agentdf_{params.to_dir()}.pkl"
+    agent_df  = pd.read_pickle(agent_dir)
+    model_dir = f"{dir}_modeldf_{params.to_dir()}.pkl"
+    model_df  = pd.read_pickle(model_dir)
+    return (agent_df, model_df)
+
+testagent_df, testmodel_df = (
+    pd.read_pickle("./mock_data/test_agentdf.pkl"),
+    pd.read_pickle("./mock_data/test_modeldf.pkl")
+)

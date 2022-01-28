@@ -2,6 +2,9 @@ from collections import namedtuple
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
 
 def fermi_dirac_graph(d, FERMI_ALPHA, FERMI_B):
     """
@@ -31,29 +34,6 @@ def plot_fermidirac():
     plt.legend()
     plt.show()
 
-
-BaseModelParams = namedtuple("ModelParams", [
-    "sidelength",
-    "density",
-    "m_barabasi",
-    "social_factor",
-    "connections_per_step",
-    "fermi_alpha",
-    "fermi_b",
-    "opinion_max_diff",
-    "total_steps",
-    "happiness_threshold",
-])
-
-class ModelParams(BaseModelParams):
-    def to_dir(self):
-        filedir=""
-        for item in self:
-            filedir += str(item).replace(".","_") + "-"
-        return filedir
-
-default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10, happiness_threshold=0.8)
-
 def read_dataframe(params, dir="./data/"):
     """Reads dataframe from .pkl file that is created by the simulate_parallel function. It uses *params to see get the matching directory
 
@@ -69,7 +49,8 @@ def read_dataframe(params, dir="./data/"):
     model_df  = pd.read_pickle(model_dir)
     return (agent_df, model_df)
 
+print(ROOT_DIR)
 testagent_df, testmodel_df = (
-    pd.read_pickle("./mock_data/test_agentdf.pkl"),
-    pd.read_pickle("./mock_data/test_modeldf.pkl")
+    pd.read_pickle(f"{ROOT_DIR}/mock_data/test_agentdf.pkl"),
+    pd.read_pickle(f"{ROOT_DIR}/mock_data/test_modeldf.pkl")
 )

@@ -1,4 +1,5 @@
 # This is the test file for the main.py file
+from polarization import util
 from polarization.model import CityModel
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid

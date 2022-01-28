@@ -5,15 +5,14 @@ from unittest.mock import patch
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from polarization.model import CityModel, Resident
+from polarization.model import CityModel, Resident, ModelParams
 from test_model import clear_model
-from util import ModelParams, default_params
 
 
 global N_POTENTIAL_CONNECTIONS
 N_POTENTIAL_CONNECTIONS = 1
 
-test_params = default_params
+test_params = ModelParams(4,1)
 class TestResident(unittest.TestCase):
     def setUp(self) -> None:
         self.model = CityModel(test_params)

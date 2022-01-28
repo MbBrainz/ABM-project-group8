@@ -18,6 +18,13 @@ distinct_samples = 100
 # but keeping it a dict
 param_values = saltelli.sample(problem, distinct_samples,bool=False)
 
+#splitting up over all of us looks like this:
+param_Nina = param_values[0:120]
+param_Maurits = param_values[180:200] # 140,160,180,200,220,240
+param_Johanna = param_values[240:360]
+param_Sasha = param_values[360:480]
+param_Noah = param_values[480:]
+
 #just from the notebook, but we won't be using
 batch = BatchRunner(CityModel,
                     max_steps=max_steps,
@@ -28,7 +35,7 @@ count = 0
 data = pd.DataFrame(index=range(replicates*len(param_values)),
                                 columns=['param1', 'param2', 'param3'])
 #the notebook has Run, Sheep, Wolves
-data['Run'],data['Resident?']=None, None 
+data['Run'],data['Modularity']=None, None 
 
 for i in range(replicates):
     for vals in param_values:

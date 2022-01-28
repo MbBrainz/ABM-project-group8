@@ -25,31 +25,31 @@ distinct_samples = 100
 
 #set output
 #not sure how to connect this to our schedule 
-model_reporters={"Grid entropy": lambda m:m.schedule.spatial_whatever_we_call_this(),
-                "Network modularity": lambda m:m.schedule.modularity} 
+model_reporters={"Network modularity": lambda m:m.schedule.modularity} 
 
 data={}
 
 for i,var in enumerate(problem['names']):
     #get bounds for the variable and get <distinct_samples> samples within this space (uniform)
-    samples = np.linspace(*problem['bounds'][i],num=distinct_samples)
+    param_values = np.linspace(*problem['bounds'][i],num=distinct_samples)
 
-#NB FROM NOTEBOOK - params must be integers 
-# Keep in mind that wolf_gain_from_food should be integers. You will have to change
-# your code to acommodate for this or sample in such a way that you only get integers.
-
-#the way that they fix that:
-    if var =='particular variable':
-        samples = np.linspace(*problem['bounds'][i],num=distinct_samples, dtype=int)
-
+    #we don't need to do this
+    if var =='steps':
+        param_values = np.linspace(*problem['bounds'][i],num=distinct_samples, dtype=int)
+    #a way of not including the params we want to keep fixed?
+    if var =='density':
+        pass 
+    
+    #need maups' paralellization here instead
     batch = BatchRunner(CityModel,
                         max_steps=max_steps,
                         iterations=replicates,
-                        variables_parameters={var:samples},
+                        variables_parameters={var:param_values},
                         model_reporters=model_reporters,
                         display_progress=True)
     batch.run_all()
 
+    #how do we get data from our runs
     data[var]=batch.get_agent_vars_dataframe()
 
 #%%

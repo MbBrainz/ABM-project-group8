@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 
-stepcount = 10
-params = ModelParams(sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2)
+
+stepcount = 50
+params = ModelParams(sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=1, fermi_b=3, opinion_max_diff=2, total_steps = 50, happiness_threshold = 0.6)
 model = CityModel(params)
 print(benchmark(model, step_count=stepcount))
 
@@ -43,16 +44,24 @@ print(model_df.head())
 # %%
 
 #LINE PLOTS GRAPH ANALYSIS
-plt.plot(range(stepcount+1), model_df.cluster_coefficient, label = "Cluster Coefficient")
+#plt.plot(range(stepcount+1), model_df.cluster_coefficient, label = "Cluster Coefficient")
 plt.plot(range(stepcount+1), model_df.graph_modularity, label = "Modularity")
 plt.legend()
-plt.title("Graph Analysis")
+plt.title("Modularity")
 plt.show()
 
 #LINE PLOTS MOVERS PER STEP
 plt.plot(range(stepcount+1), model_df.movers_per_step, label = "Movers per step")
 plt.legend()
 plt.title("Number of movers per step")
+plt.show()
+
+#LINE PLOT ENTROPY INDEX (MEASURE OF SEGREGATION)
+#plt.plot(range(stepcount+1), model_df.leibovici_entropy_index, label = "Leibovici Entropy Index")
+plt.plot(range(stepcount+1), model_df.altieri_entropy_index, label = "Altieri Entropy Index")
+
+plt.legend() 
+plt.title("Entropy Indices")
 plt.show()
 # %%
 
@@ -93,7 +102,6 @@ plt.ylabel("grid y")
 plt.show()
 
 # %%
-
-# %%
-
+from util import plot_fermidirac
+plot_fermidirac()
 # %%

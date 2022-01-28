@@ -4,6 +4,10 @@ from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from tqdm import tqdm, tnrange, trange
+from spatialentropy import leibovici_entropy
+from spatialentropy import altieri_entropy
+
+
 
 import random
 import networkx as nx
@@ -42,7 +46,7 @@ class Resident(Agent):
 
         # Fixed attributes
         # set parameters for changing political opinion
-        self.vulnerability = self.random.uniform(0,1) # we can use different distributions if we want to
+        self.vulnerability = self.random.uniform(0,0.5) # we can use different distributions if we want to
         self.weight_own = 1 - self.vulnerability
         self.weight_socials = SOCIAL * self.vulnerability
         self.weight_neighbors = NEIGHBORS * self.vulnerability
@@ -172,12 +176,11 @@ class Resident(Agent):
             if p_ij < random.random():
                 self.model.graph.remove_edge(self.unique_id, potential_agent.unique_id)
 
+
     def move_pos(self):
         """
-        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
-        of moving increase as the time since the last move increases.
+            Moves the location of an agent if they are unhappy.
         """
-
         # get the average opinion of the neighbours (nbr_infl)
         social_infl, nbr_infl = self.get_external_influences()
 
@@ -188,7 +191,6 @@ class Resident(Agent):
         if happiness < self.model.params.happiness_threshold:
             self.model.grid.move_to_empty(self)
             self.model.movers_per_step += 1
-
 
 
     def step(self):
@@ -227,6 +229,8 @@ class CityModel(Model):
                 "movers_per_step": lambda m: m.movers_per_step,
                 "cluster_coefficient": self.calculate_clustercoef,
                 "edges": self.get_graph_dict,
+                "leibovici_entropy_index": self.calculate_l_entropyindex,
+                "altieri_entropy_index": self.calculate_a_entropyindex,
 
             },
             agent_reporters={
@@ -249,6 +253,55 @@ class CityModel(Model):
         graph_dict = nx.convert.to_dict_of_dicts(self.graph)
         return graph_dict
 
+    def calculate_l_entropyindex(self):
+        agent_infolist = [[agent.pos, agent.opinion] for agent in self.schedule.agents]
+        points = []
+        types = []
+
+        for i in range(len(agent_infolist)):
+            points.append([agent_infolist[i][0][0], agent_infolist[i][0][1]])
+        
+        for i in agent_infolist:
+                if i[1]<3:
+                    types.append("left")
+                
+                elif 3<i[1]<7:
+                    types.append("middle")
+                else:
+                    types.append("right")
+        
+        points = np.array(points)
+        types = np.array(types)
+
+        e = leibovici_entropy(points, types, d=2)
+        e_entropyind = e.entropy 
+
+        return e_entropyind
+    
+    def calculate_a_entropyindex(self):
+        agent_infolist = [[agent.pos, agent.opinion] for agent in self.schedule.agents]
+        points = []
+        types = []
+
+        for i in range(len(agent_infolist)):
+            points.append([agent_infolist[i][0][0], agent_infolist[i][0][1]])
+        
+        
+        for i in agent_infolist:
+            if i[1]<3:
+                types.append("left")
+            elif 3<i[1]<7:
+                types.append("middle")
+            else:
+                types.append("right")
+
+        points = np.array(points)
+        types = np.array(types)
+        
+        a = altieri_entropy(points, types, cut=2)
+        a_entropyind = a.entropy
+            
+        return a_entropyind
 
     def initialize_population(self):
         for cell in self.grid.coord_iter():

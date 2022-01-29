@@ -1,9 +1,9 @@
 #%%
 import os, sys
-from dump.graph import create_graph
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from dump.graph import create_graph
 
-from util import ModelParams
+from polarization.util import ModelParams
 
 
 params_list = [
@@ -16,7 +16,7 @@ params_list = [
     ]
 
 # %%
-DATA_DIR = "./data/"
+DATA_DIR = ".dump/data/"
 
 from dump.run_parallel import read_dataframe
 

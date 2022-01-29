@@ -1,4 +1,5 @@
 
+from collections import namedtuple
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
@@ -12,7 +13,6 @@ from networkx.algorithms.community.quality import modularity
 from networkx.algorithms.cluster import average_clustering
 import numpy as np
 
-from util import ModelParams, default_params
 
 """This file should contain the model class.
 If the file gets large, it may make sense to move the complex bits into other files,
@@ -21,15 +21,29 @@ If the file gets large, it may make sense to move the complex bits into other fi
 
 random.seed(711)
 
-# for reference, https://github.com/projectmesa/mesa/tree/main/examples/schelling is a good structure
-# docs: https://mesa.readthe docs.io/en/master/best-practices.html
+BaseModelParams = namedtuple(
+    "ModelParams",
+    field_names = [
+        "sidelength",
+        "total_steps",
+        "density",
+        "m_barabasi",
+        "fermi_alpha",
+        "fermi_b",
+        "social_factor",
+        "connections_per_step",
+        "opinion_max_diff",
+        "happiness_threshold",
+        ],
+    defaults = [10, 10, 0.6, 2, 5, 3, 0.8, 5,  2, 0.8]
+    )
 
-# this is the proportion of external influence determined by socials and by neighbors
-SOCIAL = 0.8
-NEIGHBORS = 1 - SOCIAL
-N_POTENTIAL_CONNECTIONS = 5
-FERMI_ALPHA = 5
-FERMI_B = 3
+class ModelParams(BaseModelParams):
+    def to_dir(self):
+        filedir=""
+        for item in self:
+            filedir += str(item).replace(".","_") + "-"
+        return filedir
 
 class Resident(Agent):
     def __init__(self, unique_id, model, pos):
@@ -43,8 +57,8 @@ class Resident(Agent):
         # set parameters for changing political opinion
         self.vulnerability = self.random.uniform(0,1) # we can use different distributions if we want to
         self.weight_own = 1 - self.vulnerability
-        self.weight_socials = SOCIAL * self.vulnerability
-        self.weight_neighbors = NEIGHBORS * self.vulnerability
+        self.weight_socials = self.model.params.social_factor * self.vulnerability
+        self.weight_neighbors = (1 - self.model.params.social_factor)* self.vulnerability
 
         self.theta = self.random.uniform(0,1) # we can use different distributions if we want to
 
@@ -118,10 +132,10 @@ class Resident(Agent):
                 socials_ids (list): IDs of social connections of agent
         """
         # select random un-connected agent, determine whether to form a new connection
-        if len(self.unconnected_ids) < N_POTENTIAL_CONNECTIONS:
+        if len(self.unconnected_ids) < self.model.params.connections_per_step:
             n_potentials = len(self.unconnected_ids)
         else:
-            n_potentials = N_POTENTIAL_CONNECTIONS
+            n_potentials = self.model.params.connections_per_step
 
         # randomly select 'n_potentials' from people your not connected to
         pot_make_ids = np.random.choice(self.unconnected_ids, size=n_potentials, replace=False)
@@ -139,10 +153,10 @@ class Resident(Agent):
             Args:
                 socials_ids (list): IDs of social connections of agent
         """
-        if len(self.socials_ids) < N_POTENTIAL_CONNECTIONS:
+        if len(self.socials_ids) < self.model.params.connections_per_step:
             n_potentials = len(self.socials_ids)
         else:
-            n_potentials = N_POTENTIAL_CONNECTIONS
+            n_potentials = self.model.params.connections_per_step
 
         # randomly select 'n_potentials' from the your network
         pot_break_ids = np.random.choice(self.socials_ids, size=n_potentials, replace=False)
@@ -161,7 +175,7 @@ class Resident(Agent):
             potential_agent (Resident): the resident to consider
             method (str): "ADD" or "REMOVE"
         """
-        p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - potential_agent.opinion) - FERMI_B)))
+        p_ij = 1 / ( 1 + np.exp(self.model.params.fermi_alpha*(abs(self.opinion - potential_agent.opinion) - self.model.params.fermi_b)))
 
         if method == "ADD":
             if p_ij > random.random():
@@ -181,7 +195,7 @@ class Resident(Agent):
         social_infl, nbr_infl = self.get_external_influences()
 
         # compare your opinion with the average of your neighbours using the fermi dirac equation.
-        happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
+        happiness = 1 / ( 1 + np.exp(self.model.params.fermi_alpha*(abs(self.opinion - nbr_infl) - self.model.params.fermi_b)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < self.model.params.happiness_threshold:
@@ -206,7 +220,7 @@ class Resident(Agent):
 
 
 class CityModel(Model):
-    def __init__(self, params: ModelParams = default_params):
+    def __init__(self, params:ModelParams = ModelParams()):
         # grid variables
         self.params = params
         self.schedule = RandomActivation(self)

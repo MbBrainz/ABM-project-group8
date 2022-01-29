@@ -3,7 +3,6 @@ import os, sys
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from util import ModelParams
 from polarization.benchmarking import benchmark
 from polarization.model import CityModel
 import pandas as pd

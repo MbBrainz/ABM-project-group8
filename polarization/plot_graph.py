@@ -1,11 +1,8 @@
 #%%
-from venv import create
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
-from numpy import maximum_sctype
-
 
 def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr"):
     first_run_dict = model_df.loc[model_df.index[0],"edges"]
@@ -46,8 +43,6 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr"):
 
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
-
-
 
     plt.show()
 

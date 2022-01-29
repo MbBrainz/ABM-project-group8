@@ -28,7 +28,7 @@ def init_and_start_model(params, dir=DATA_DIR):
     current = multiprocessing.current_process()
     pos = current._identity[0]-1
 
-    model.run_model(param_set, desc=f"core {pos}, sample {sample_id}: {sample_nr}/{nr_samples}", pos=pos)
+    model.run_model(param_set, desc=f"core {pos}, sample {sample_id}: {sample_nr}/{nr_samples}", pos=pos, collect_during=False)
 
     agent_df = model.datacollector.get_agent_vars_dataframe()
     agent_df.to_pickle(f"{dir}_agentdf_{param_set.to_dir()}-{sample_nr}.pkl")

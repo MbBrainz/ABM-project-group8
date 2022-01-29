@@ -285,13 +285,22 @@ class CityModel(Model):
         #set the counter of movers per step back to zero
         self.movers_per_step = 0
 
-    def run_model(self, step_count=1, desc="", pos=0):
+    def run_model(self, step_count=1, desc="", pos=0, collect_during=True):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
         for i in trange(self.params.total_steps, desc=desc, position=pos):
             self.step()
 
+            # collect data
+            if collect_during:
+                self.datacollector.collect(self)
+
+                #set the counter of movers back to zero
+                self.movers_per_step = 0
+
+        if not collect_during:
+            self.datacollector.collect(self)
 
 import sys
 def main(argv):

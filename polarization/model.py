@@ -279,12 +279,6 @@ class CityModel(Model):
         # the scheduler uses the step() functions of the agents
         self.schedule.step()
 
-        # here, we need to collect data with a DataCollector
-        self.datacollector.collect(self)
-
-        #set the counter of movers per step back to zero
-        self.movers_per_step = 0
-
     def run_model(self, step_count=1, desc="", pos=0, collect_during=True):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,

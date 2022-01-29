@@ -2,6 +2,9 @@ from collections import namedtuple
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
 
 def fermi_dirac_graph(d, FERMI_ALPHA, FERMI_B):
     """
@@ -46,7 +49,8 @@ def read_dataframe(params, dir="./data/"):
     model_df  = pd.read_pickle(model_dir)
     return (agent_df, model_df)
 
-# testagent_df, testmodel_df = (
-#     pd.read_pickle("./mock_data/test_agentdf.pkl"),
-#     pd.read_pickle("./mock_data/test_modeldf.pkl")
-# )
+print(ROOT_DIR)
+testagent_df, testmodel_df = (
+    pd.read_pickle(f"{ROOT_DIR}/mock_data/test_agentdf.pkl"),
+    pd.read_pickle(f"{ROOT_DIR}/mock_data/test_modeldf.pkl")
+)

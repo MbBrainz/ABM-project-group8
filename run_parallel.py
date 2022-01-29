@@ -35,7 +35,7 @@ def init_and_start_model(params, dir=DATA_DIR):
 
     model_df = model.datacollector.get_model_vars_dataframe()
     model_df.to_pickle(f"{dir}_modeldf_{param_set.to_dir()}-{sample_nr}.pkl")
-    return (agent_df, model_df)
+
 
 def simulate_parallel(params_list: list[ModelParams], distinct_samples=1):
     """Simulates in parallel for each item in the parameterlist and saves it to the data folder.

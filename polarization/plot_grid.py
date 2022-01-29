@@ -2,8 +2,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from util import testagent_df
+#from util import testagent_df
 plt.style.use("seaborn")
+
 
 #%%
 from matplotlib import cm
@@ -32,7 +33,7 @@ def grid_plot(agent_df, plot_step, sidelength, ax=None):
     ax.grid(False)
 
 # %%
-grid_plot(testagent_df, 10, 7)
+# grid_plot(agent_df, 50, 20)
 
 # %%
 def sim_grid_plot(agent_df, grid_axis=[]):
@@ -45,6 +46,6 @@ def sim_grid_plot(agent_df, grid_axis=[]):
     grid_plot(agent_df, 1, sidelength, grid_axis[0])
     grid_plot(agent_df, max_step, sidelength, grid_axis[1])
 
-sim_grid_plot(testagent_df)
+# sim_grid_plot(agent_df)
 
 # %%

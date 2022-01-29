@@ -3,7 +3,7 @@ import os, sys
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from util import ModelParams
+from polarization.util import ModelParams
 from polarization.benchmarking import benchmark
 from polarization.model import CityModel
 import pandas as pd
@@ -13,7 +13,7 @@ from matplotlib import cm
 
 
 stepcount = 50
-params = ModelParams(sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=1, fermi_b=3, opinion_max_diff=2, total_steps = 50, happiness_threshold = 0.6)
+params = ModelParams(sidelength=20, density=0.8, m_barabasi=2, social_factor=0.95, connections_per_step=5, fermi_alpha=1, fermi_b=3, opinion_max_diff=2, total_steps = 50, happiness_threshold = 0.6)
 model = CityModel(params)
 print(benchmark(model, step_count=stepcount))
 
@@ -102,6 +102,8 @@ plt.ylabel("grid y")
 plt.show()
 
 # %%
-from util import plot_fermidirac
-plot_fermidirac()
+from polarization.plot_grid import sim_grid_plot 
+from polarization.plot_graph import create_graph
+create_graph(agent_df, model_df)
+sim_grid_plot(agent_df)
 # %%

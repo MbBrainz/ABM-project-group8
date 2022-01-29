@@ -6,6 +6,7 @@ from mesa.datacollection import DataCollector
 from tqdm import tqdm, tnrange, trange
 from spatialentropy import leibovici_entropy
 from spatialentropy import altieri_entropy
+from collections import namedtuple
 
 
 
@@ -15,8 +16,6 @@ from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community.quality import modularity
 from networkx.algorithms.cluster import average_clustering
 import numpy as np
-
-from util import ModelParams, default_params
 
 """This file should contain the model class.
 If the file gets large, it may make sense to move the complex bits into other files,
@@ -34,6 +33,29 @@ NEIGHBORS = 1 - SOCIAL
 N_POTENTIAL_CONNECTIONS = 5
 FERMI_ALPHA = 5
 FERMI_B = 3
+
+BaseModelParams = namedtuple("ModelParams", [
+    "sidelength",
+    "density",
+    "m_barabasi",
+    "social_factor",
+    "connections_per_step",
+    "fermi_alpha",
+    "fermi_b",
+    "opinion_max_diff",
+    "total_steps",
+    "happiness_threshold",
+])
+
+class ModelParams(BaseModelParams):
+    def to_dir(self):
+        filedir=""
+        for item in self:
+            filedir += str(item).replace(".","_") + "-"
+        return filedir
+
+default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10, happiness_threshold=0.8)
+
 
 class Resident(Agent):
     def __init__(self, unique_id, model, pos):

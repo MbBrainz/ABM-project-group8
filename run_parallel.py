@@ -78,9 +78,13 @@ def read_dataframe_for_param_set(params, distinct_samples, dir=DATA_DIR):
     model_df_list = []
 
     for i in range(0,distinct_samples):
-        sample_df = read_dataframe(params=params, sample_nr=i+1, dir=dir)
-        agent_df_list.append(sample_df[0])
-        model_df_list.append(sample_df[1])
+        try:
+            sample_df = read_dataframe(params=params, sample_nr=i+1, dir=dir)
+            agent_df_list.append(sample_df[0])
+            model_df_list.append(sample_df[1])
+        except:
+            print(f"\n [WARNING]: requested {distinct_samples} distinct samples, but only {i} found. check the data folder if your data is really there.\n\n")
+            break
 
     agent_df = pd.concat(agent_df_list)
     model_df = pd.concat(model_df_list)
@@ -119,7 +123,7 @@ def example():
 
     # here the files are read. This should be done separately from simulation, e.g. at visualisation.
     params = params_list[0]
-    agent_df, model_df = read_dataframe_for_param_set(params, distinct_samples=distinct_samples)
+    agent_df, model_df = read_dataframe_for_param_set(params, distinct_samples=distinct_samples+1)
 
     print(model_df)
 

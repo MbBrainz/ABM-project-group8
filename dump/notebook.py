@@ -5,6 +5,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from polarization.benchmarking import benchmark
 from polarization.model import CityModel
+from polarization.model import ModelParams
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,7 +44,7 @@ print(model_df.head())
 # %%
 
 #LINE PLOTS GRAPH ANALYSIS
-#plt.plot(range(stepcount+1), model_df.cluster_coefficient, label = "Cluster Coefficient")
+plt.plot(range(stepcount+1), model_df.cluster_coefficient, label = "Cluster Coefficient")
 plt.plot(range(stepcount+1), model_df.graph_modularity, label = "Modularity")
 plt.legend()
 plt.title("Modularity")
@@ -105,4 +106,8 @@ from polarization.plot_grid import sim_grid_plot
 from polarization.plot_graph import create_graph
 create_graph(agent_df, model_df)
 sim_grid_plot(agent_df)
+# %%
+from polarization.util import plot_fermidirac
+plot_fermidirac()
+
 # %%

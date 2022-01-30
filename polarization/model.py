@@ -283,6 +283,10 @@ class CityModel(Model):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
+
+        # # Uncomment if you want to collect the initial state
+        # self.datacollector.collect(self)
+
         for i in trange(self.params.total_steps, desc=desc, position=pos):
             self.step()
 

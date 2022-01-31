@@ -2,6 +2,8 @@
 #import SAlib
 #from SALib.sample import saltelli
 #from SALib.analyze import sobol
+import os, sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from polarization.model import CityModel, Resident
 from mesa.batchrunner import BatchRunner
 import pandas as pd
@@ -23,21 +25,21 @@ from itertools import combinations
 
 problem = {
     'num_vars':6,
-    'names':['fermi_alpha','fermi_b', 'social factor',
-    'connections per step','opinion_max_dif', 'happiness threshold'],
+    'names':['fermi_alpha','fermi_b', 'social_factor',
+    'connections_per_step','opinion_max_diff', 'happiness_threshold'],
     'bounds':[[2,10],[0,10],[0,1],[1,5],[1,10],[0,1]],
 }
 
 #%%
 #set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable(N. 100 is good for us)
 #total sample size = N * (num_vars+2)  
-replicates = 5
-max_steps = 200
-distinct_samples = 100
+replicates = 2
+max_steps = 10
+distinct_samples = 10
 #%%
 #set output
 #not sure how to connect this to our schedule 
-model_reporters={"Network modularity": lambda m:m.schedule.calculate_modularity(CityModel)}
+model_reporters={"Network modularity": lambda m:m.calculate_modularity}
 #how it is stated in the Model class - "graph_modularity": self.calculate_modularity 
 
 data={}
@@ -66,7 +68,7 @@ for i,var in enumerate(problem['names']):
     batch = BatchRunner(CityModel,
                         max_steps=max_steps,
                         iterations=replicates,
-                        variables_parameters={var:param_values},
+                        variable_parameters={var:param_values},
                         model_reporters=model_reporters,
                         display_progress=True)
     batch.run_all()

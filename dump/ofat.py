@@ -37,7 +37,7 @@ distinct_samples = 100
 #%%
 #set output
 #not sure how to connect this to our schedule 
-model_reporters={"Network modularity": lambda m:m.schedule.modularity}
+model_reporters={"Network modularity": lambda m:m.schedule.calculate_modularity(CityModel)}
 #how it is stated in the Model class - "graph_modularity": self.calculate_modularity 
 
 data={}
@@ -63,11 +63,6 @@ for i,var in enumerate(problem['names']):
     #get bounds for the variable and get <distinct_samples> samples within this space (uniform)
     param_values = np.linspace(*problem['bounds'][i],num=distinct_samples)
 
-    #make things integers??
-    if var == '':
-        param_values=np.linspace(*problem['bounds'][i],num=distinct_samples, dtype=int)
-
-    #need maups' paralellization here instead
     batch = BatchRunner(CityModel,
                         max_steps=max_steps,
                         iterations=replicates,
@@ -116,6 +111,6 @@ def plot_all_vars(df,param):
     for i, var in enumerate(problem['names']):
         plot_param_var_conf(axs[i], data[var], var, param, i)
 
-for param in ('Resident'):
+for param in ('Network modularity'):
     plot_all_vars(data, param)
     plt.show()

@@ -7,4 +7,11 @@ pytest
 scipy
 seaborn
 simpy
-mesa
+networkx
+pytest
+seaborn
+multiprocess
+git+https://github.com/soudy/mesa#egg=mesa # this is mesa
+
+
+###### Requirements with version:

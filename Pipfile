@@ -12,7 +12,9 @@ pytest = "*"
 scipy = "*"
 seaborn = "*"
 simpy = "*"
-mesa = "*"
+mesa = {git = "https://github.com/soudy/mesa"}
+multiprocess = "*"
+networkx = "*"
 
 [dev-packages]
 autopep8 = "*"

@@ -1,4 +1,6 @@
 
+from collections import namedtuple
+
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
@@ -24,28 +26,21 @@ If the file gets large, it may make sense to move the complex bits into other fi
 
 random.seed(711)
 
-# for reference, https://github.com/projectmesa/mesa/tree/main/examples/schelling is a good structure
-# docs: https://mesa.readthe docs.io/en/master/best-practices.html
-
-# this is the proportion of external influence determined by socials and by neighbors
-SOCIAL = 0.8
-NEIGHBORS = 1 - SOCIAL
-N_POTENTIAL_CONNECTIONS = 5
-FERMI_ALPHA = 5
-FERMI_B = 3
-
-BaseModelParams = namedtuple("ModelParams", [
-    "sidelength",
-    "density",
-    "m_barabasi",
-    "social_factor",
-    "connections_per_step",
-    "fermi_alpha",
-    "fermi_b",
-    "opinion_max_diff",
-    "total_steps",
-    "happiness_threshold",
-])
+BaseModelParams = namedtuple(
+    "ModelParams",
+    field_names = [
+        "sidelength",
+        "density",
+        "m_barabasi",
+        "fermi_alpha",
+        "fermi_b",
+        "social_factor",
+        "connections_per_step",
+        "opinion_max_diff",
+        "happiness_threshold",
+        ],
+    defaults = [10, 0.6, 2, 5, 3, 0.8, 5,  2, 0.8]
+    )
 
 class ModelParams(BaseModelParams):
     def to_dir(self):
@@ -230,9 +225,16 @@ class Resident(Agent):
 
 
 class CityModel(Model):
-    def __init__(self, params: ModelParams = default_params):
+    def __init__(self, sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, happiness_threshold=0.8):
         # grid variables
-        self.params = params
+        self.params = ModelParams(sidelength=sidelength, density=density, m_barabasi=m_barabasi, # fixed params
+                                  connections_per_step=connections_per_step,
+                                  fermi_alpha=fermi_alpha,
+                                  fermi_b=fermi_b,
+                                  social_factor=social_factor,
+                                  opinion_max_diff=opinion_max_diff,
+                                  happiness_threshold=happiness_threshold
+                                  )
         self.schedule = RandomActivation(self)
         self.movers_per_step = 0
         self.n_agents = 0
@@ -348,7 +350,7 @@ class CityModel(Model):
         # # Uncomment if you want to collect the initial state
         # self.datacollector.collect(self)
 
-        for i in trange(self.params.total_steps, desc=desc, position=pos):
+        for i in trange(step_count, desc=desc, position=pos):
             self.step()
 
             # collect data
@@ -368,8 +370,9 @@ def main(argv):
         print ("usage: model.py <steps>")
     else:
         steps=int(argv[0])
-
-    model = CityModel()
+    params = ModelParams()
+    print(*params)
+    model = CityModel(*params)
     # # proceed = benchmark(model, int(argv[0]))
     # if proceed:
     model.run_model()

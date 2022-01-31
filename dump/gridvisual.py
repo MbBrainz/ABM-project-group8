@@ -1,24 +1,35 @@
 #this is just a copy of the tutorial on mesa for interactive grid visualisation
 #%%
+from mesa import Model
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from polarization.model import CityModel
+from polarization.model import CityModel,ModelParams,Resident
 
 #the simplest form of this:
 def agent_portrayal(agent):
+    if agent == None:
+        return
+
     portrayal = {"Shape": "sqaure",
                  "Color":"red",
                  "Filled": "true",
                  "r": 0.5}
+                 
     return portrayal
 grid= CanvasGrid(agent_portrayal,10,10,500,500)
+# model_params = ModelParams()._asdict
+
+model_params=dict(sidelength=10, density=0.6, m_barabasi=2, fermi_alpha=5, fermi_b=3, social_factor=0.8, connections_per_step=5, opinion_max_diff=2, happiness_threshold=0.8)
+
+#%%
+
 server=ModularServer(CityModel,
                     [grid],
                     "City Model",
-                    {"width":5, "height":5,"m_barabasi":2})
+                    model_params)
 server.port=8521
 server.launch()
 

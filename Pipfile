@@ -15,6 +15,7 @@ simpy = "*"
 mesa = {git = "https://github.com/soudy/mesa"}
 multiprocess = "*"
 networkx = "*"
+spatialentropy = "*"
 
 [dev-packages]
 autopep8 = "*"

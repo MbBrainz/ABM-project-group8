@@ -26,7 +26,6 @@ BaseModelParams = namedtuple(
     "ModelParams",
     field_names = [
         "sidelength",
-        "total_steps",
         "density",
         "m_barabasi",
         "fermi_alpha",
@@ -36,7 +35,7 @@ BaseModelParams = namedtuple(
         "opinion_max_diff",
         "happiness_threshold",
         ],
-    defaults = [10, 10, 0.6, 2, 5, 3, 0.8, 5,  2, 0.8]
+    defaults = [10, 0.6, 2, 5, 3, 0.8, 5,  2, 0.8]
     )
 
 class ModelParams(BaseModelParams):
@@ -295,7 +294,7 @@ class CityModel(Model):
         # # Uncomment if you want to collect the initial state
         # self.datacollector.collect(self)
 
-        for i in trange(self.params.total_steps, desc=desc, position=pos):
+        for i in trange(step_count, desc=desc, position=pos):
             self.step()
 
             # collect data
@@ -315,8 +314,9 @@ def main(argv):
         print ("usage: model.py <steps>")
     else:
         steps=int(argv[0])
-
-    model = CityModel()
+    params = ModelParams()
+    print(*params)
+    model = CityModel(*params)
     # # proceed = benchmark(model, int(argv[0]))
     # if proceed:
     model.run_model()

@@ -47,6 +47,6 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr"):
     plt.show()
 
     # %%
-from util import testagent_df, testmodel_df
-create_graph(testagent_df, testmodel_df)
+# from util import testagent_df, testmodel_df
+# create_graph(testagent_df, testmodel_df)
 # %%

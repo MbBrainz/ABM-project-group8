@@ -14,7 +14,7 @@ def fermi_dirac_graph(d, FERMI_ALPHA, FERMI_B):
     return pij
 
 def plot_fermidirac():
-    params = [(10,1),(1,3)]
+    params = [(1,3),(1,5),(3,3)]
 
     distances = np.linspace(0, 10, 100)
     plot_data =[]

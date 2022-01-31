@@ -4,7 +4,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from dump.graph import create_graph
 
 from polarization.util import ModelParams
-
+import matplotlib.pyplot as plt
+import pandas as pd
 
 params_list = [
         ModelParams(sidelength=20, density=0.6, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=100, happiness_threshold=0.8),

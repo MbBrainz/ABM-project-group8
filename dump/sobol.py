@@ -1,20 +1,20 @@
 #%%
+from dataclasses import dataclass
 from time import time
 import SALib
 from SALib.sample import saltelli
 from SALib.analyze import sobol
 from itertools import combinations
 import numpy as np
-from numpy import indices
 import matplotlib.pyplot as plt
 import pandas as pd
-from polarization.model import CityModel, Resident
-from mesa.batchrunner import BatchRunner, BatchRunnerMP
+from polarization.model import CityModel
+from mesa.batchrunner import BatchRunnerMP
 from IPython.display import clear_output
 
-replicates = 1 # maybe do 5 for time
-max_steps = 75
-distinct_samples = 128
+replicates = 4 # maybe do 5 for time
+max_steps = 2
+distinct_samples = 2
 
 
 
@@ -33,26 +33,46 @@ model_reporters={"Network modularity": lambda m:m.calculate_modularity()}
 param_values = saltelli.sample(problem, distinct_samples, calc_second_order=False)
 
 #splitting up over all of us looks like this depending on our total number:
-param_Nina = param_values[0:160]
-param_Maurits = param_values[160:320]
-param_Johanna = param_values[320:480]
-param_Sasha = param_values[480:640]
-param_Noah = param_values[640:]
+param_Nina      = param_values[0:160]
+param_Maurits   = param_values[160:320]
+param_Johanna   = param_values[320:480]
+param_Sasha     = param_values[480:640]
+param_Noah      = param_values[640:]
 
-param_test = param_values[:1]
+###### before you run, please fill in these values: #######
+WHO_IS_RUNNING = "maurits"
+# WHICH_SAMPLES = "#160#190"  -->  these are the numbers from above
+param_values = param_Maurits
 
-param_values = param_test
+paramset_for_this_run = (160, 320)
+ps = paramset_for_this_run
+divide_into = 10
+
+intervals = []
+for i in np.arange(*ps, divide_into):
+    interval = (i, i+divide_into)
+    intervals.append(interval)
+print(intervals)
+
+#%%
+interval = intervals[0]
+count = 0
+# this generates the file in the following directory
+GENERAL_DIR ="./data/sobol/sobol"
+
+WHICH_SAMPLES = f"#{interval[0]}:{interval[1]}"
+DIR_TO_SAVE = f"{GENERAL_DIR}-{WHICH_SAMPLES}-{WHO_IS_RUNNING}.pkl"
 
 batch = BatchRunnerMP(CityModel,
                     max_steps=max_steps,
                     variable_parameters={name:[] for name in problem['names']},
                     model_reporters=model_reporters)
 
-count = 0
 data = pd.DataFrame(index=range(replicates*len(param_values)),
-                                columns=['fermi_alpha','fermi_b', 'social factor','connections per step','opinion_max_dif', 'happiness threshold'])
+                                columns=['fermi_alpha','fermi_b', 'social_factor','connections_perstep','opinion_max_diff', 'happiness_threshold'])
+
 #these are the outputs that we are measureing
-data['Run'],data['Modularity']=None, None
+data['Run'],data["Replicates"],data['Modularity']=None, None, None
 
 # %%
 start_time = time()
@@ -70,6 +90,8 @@ for i in range(replicates):
         batch.run_iteration(variable_params, tuple(vals),count)
         iteration_data = batch.get_model_vars_dataframe().iloc[count]
         iteration_data['Run'] = count #this is quite nb i think
+        iteration_data['Replicates'] = i #this is quite nb i think
+
         data.iloc[count,0:6] = vals
         data.iloc[count,6:] = iteration_data
         count += 1
@@ -78,11 +100,17 @@ for i in range(replicates):
 
 process_time = time() - start_time
 print(f"Total simulation {process_time}")
-#%%
-# print(batch.datacollector_model_reporters)
+data.to_csv(DIR_TO_SAVE)
+print(f"saved data for interval {interval}")
+#%% save data
 print(data)
-#save to file
-#data.to_csv(data_file_name)?? or to pickle - ask maups :
+print(data["Modularity"].values)
+
+
+
+# %% load data
+pd.read_pickle()
+
 
 #%%
 #bringing together everyone's data:

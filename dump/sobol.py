@@ -1,5 +1,5 @@
 #%%
-import SAlib
+import SALib
 from SALib.sample import saltelli
 from SALib.analyze import sobol
 from itertools import combinations
@@ -41,8 +41,6 @@ for i in range(replicates):
     for vals in param_values:
         #change params that should be integers - ??? still don't get this
         vals = list(vals)
-        vals[2] = int(vals[2]) #social factor
-        vals[5] = int(vals[5]) #happiness threshold
         #transform to dict with parameter names and their values
         variable_params = {}
         for name, val in zip(problem['names'], vals):

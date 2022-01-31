@@ -50,7 +50,6 @@ batch = BatchRunnerMP(CityModel,
 
 count = 0
 data = pd.DataFrame(index=range(replicates*len(param_values)),
-
                                 columns=['fermi_alpha','fermi_b', 'social factor','connections per step','opinion_max_dif', 'happiness threshold'])
 #these are the outputs that we are measureing
 data['Run'],data['Modularity']=None, None

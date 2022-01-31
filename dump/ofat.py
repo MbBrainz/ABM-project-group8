@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from itertools import combinations
+import csv
 plt.style.use('seaborn')
 
 #from run_parallel import simulate_parallel
@@ -34,9 +35,9 @@ problem = {
 #%%
 #set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable(N. 100 is good for us)
 #total sample size = N * (num_vars+2)  
-replicates = 1
-max_steps = 50
-distinct_samples = 3
+replicates = 2
+max_steps = 25
+distinct_samples = 15
 #%%
 #set output
 #not sure how to connect this to our schedule 
@@ -78,10 +79,13 @@ def plot_param_var_conf(ax,df,var,param,i):
     """
     x = df.groupby(var).mean().reset_index()[var]
     y = df.groupby(var).mean()[param]
+    #%%
 
     replicates = df.groupby(var)[param].count()
-    err = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
-
+    err_series = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
+    err = err_series.tolist()
+    #print(err)
+    
     ax.plot(x,y,c='k')
     ax.fill_between(x,y-err,y+err)
 
@@ -106,5 +110,17 @@ for param in (['graph_modularity','altieri_entropy_index']):
     print(f"Param: {param}")
     plot_all_vars(data, param)
     plt.show()
+
+
+# %%
+# open file for writing, "w" is writing
+w = csv.writer(open("data_15samples_2repl_DICT.csv", "w"))
+
+# loop over dictionary keys and values
+for key, val in data.items():
+
+    # write every key and value to file
+    w.writerow([key, val])
+
 
 # %%

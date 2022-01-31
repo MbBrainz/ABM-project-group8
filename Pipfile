@@ -15,6 +15,8 @@ simpy = "*"
 mesa = {git = "https://github.com/soudy/mesa"}
 multiprocess = "*"
 networkx = "*"
+salib = "*"
+ipykernel = "*"
 
 [dev-packages]
 autopep8 = "*"

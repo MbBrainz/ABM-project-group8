@@ -6,11 +6,6 @@ from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from tqdm import tqdm, tnrange, trange
-from spatialentropy import leibovici_entropy
-from spatialentropy import altieri_entropy
-from collections import namedtuple
-
-
 
 import random
 import networkx as nx
@@ -18,6 +13,7 @@ from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community.quality import modularity
 from networkx.algorithms.cluster import average_clustering
 import numpy as np
+
 
 """This file should contain the model class.
 If the file gets large, it may make sense to move the complex bits into other files,
@@ -49,9 +45,6 @@ class ModelParams(BaseModelParams):
             filedir += str(item).replace(".","_") + "-"
         return filedir
 
-default_params = ModelParams(sidelength=10, density=0.5, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, total_steps=10, happiness_threshold=0.8)
-
-
 class Resident(Agent):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model)
@@ -62,10 +55,10 @@ class Resident(Agent):
 
         # Fixed attributes
         # set parameters for changing political opinion
-        self.vulnerability = self.random.uniform(0,0.5) # we can use different distributions if we want to
+        self.vulnerability = self.random.uniform(0,1) # we can use different distributions if we want to
         self.weight_own = 1 - self.vulnerability
-        self.weight_socials = SOCIAL * self.vulnerability
-        self.weight_neighbors = NEIGHBORS * self.vulnerability
+        self.weight_socials = self.model.params.social_factor * self.vulnerability
+        self.weight_neighbors = (1 - self.model.params.social_factor)* self.vulnerability
 
         self.theta = self.random.uniform(0,1) # we can use different distributions if we want to
 
@@ -139,10 +132,10 @@ class Resident(Agent):
                 socials_ids (list): IDs of social connections of agent
         """
         # select random un-connected agent, determine whether to form a new connection
-        if len(self.unconnected_ids) < N_POTENTIAL_CONNECTIONS:
+        if len(self.unconnected_ids) < self.model.params.connections_per_step:
             n_potentials = len(self.unconnected_ids)
         else:
-            n_potentials = N_POTENTIAL_CONNECTIONS
+            n_potentials = self.model.params.connections_per_step
 
         # randomly select 'n_potentials' from people your not connected to
         pot_make_ids = np.random.choice(self.unconnected_ids, size=n_potentials, replace=False)
@@ -160,10 +153,10 @@ class Resident(Agent):
             Args:
                 socials_ids (list): IDs of social connections of agent
         """
-        if len(self.socials_ids) < N_POTENTIAL_CONNECTIONS:
+        if len(self.socials_ids) < self.model.params.connections_per_step:
             n_potentials = len(self.socials_ids)
         else:
-            n_potentials = N_POTENTIAL_CONNECTIONS
+            n_potentials = self.model.params.connections_per_step
 
         # randomly select 'n_potentials' from the your network
         pot_break_ids = np.random.choice(self.socials_ids, size=n_potentials, replace=False)
@@ -182,7 +175,7 @@ class Resident(Agent):
             potential_agent (Resident): the resident to consider
             method (str): "ADD" or "REMOVE"
         """
-        p_ij = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - potential_agent.opinion) - FERMI_B)))
+        p_ij = 1 / ( 1 + np.exp(self.model.params.fermi_alpha*(abs(self.opinion - potential_agent.opinion) - self.model.params.fermi_b)))
 
         if method == "ADD":
             if p_ij > random.random():
@@ -192,21 +185,23 @@ class Resident(Agent):
             if p_ij < random.random():
                 self.model.graph.remove_edge(self.unique_id, potential_agent.unique_id)
 
-
     def move_pos(self):
         """
-            Moves the location of an agent if they are unhappy.
+        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
+        of moving increase as the time since the last move increases.
         """
+
         # get the average opinion of the neighbours (nbr_infl)
         social_infl, nbr_infl = self.get_external_influences()
 
         # compare your opinion with the average of your neighbours using the fermi dirac equation.
-        happiness = 1 / ( 1 + np.exp(FERMI_ALPHA*(abs(self.opinion - nbr_infl) - FERMI_B)))
+        happiness = 1 / ( 1 + np.exp(self.model.params.fermi_alpha*(abs(self.opinion - nbr_infl) - self.model.params.fermi_b)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < self.model.params.happiness_threshold:
             self.model.grid.move_to_empty(self)
             self.model.movers_per_step += 1
+
 
 
     def step(self):
@@ -252,8 +247,6 @@ class CityModel(Model):
                 "movers_per_step": lambda m: m.movers_per_step,
                 "cluster_coefficient": self.calculate_clustercoef,
                 "edges": self.get_graph_dict,
-                "leibovici_entropy_index": self.calculate_l_entropyindex,
-                "altieri_entropy_index": self.calculate_a_entropyindex,
 
             },
             agent_reporters={
@@ -276,55 +269,6 @@ class CityModel(Model):
         graph_dict = nx.convert.to_dict_of_dicts(self.graph)
         return graph_dict
 
-    def calculate_l_entropyindex(self):
-        agent_infolist = [[agent.pos, agent.opinion] for agent in self.schedule.agents]
-        points = []
-        types = []
-
-        for i in range(len(agent_infolist)):
-            points.append([agent_infolist[i][0][0], agent_infolist[i][0][1]])
-        
-        for i in agent_infolist:
-                if i[1]<3:
-                    types.append("left")
-                
-                elif 3<i[1]<7:
-                    types.append("middle")
-                else:
-                    types.append("right")
-        
-        points = np.array(points)
-        types = np.array(types)
-
-        e = leibovici_entropy(points, types, d=2)
-        e_entropyind = e.entropy 
-
-        return e_entropyind
-    
-    def calculate_a_entropyindex(self):
-        agent_infolist = [[agent.pos, agent.opinion] for agent in self.schedule.agents]
-        points = []
-        types = []
-
-        for i in range(len(agent_infolist)):
-            points.append([agent_infolist[i][0][0], agent_infolist[i][0][1]])
-        
-        
-        for i in agent_infolist:
-            if i[1]<3:
-                types.append("left")
-            elif 3<i[1]<7:
-                types.append("middle")
-            else:
-                types.append("right")
-
-        points = np.array(points)
-        types = np.array(types)
-        
-        a = altieri_entropy(points, types, cut=2)
-        a_entropyind = a.entropy
-            
-        return a_entropyind
 
     def initialize_population(self):
         for cell in self.grid.coord_iter():

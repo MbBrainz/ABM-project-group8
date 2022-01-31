@@ -1,12 +1,17 @@
-# ABM-project8
-Agent Based Modeling project of group 8
+# Agent Based Modeling Project - Group 8
 
-students with student number:
+### Students with student number:
 - Maurits Bos: 14014777
-- Noah van de Bunt: 11226218
 - Sasha Boykova: 12106070
-- Nina Holzbach: 13827464
+- Noah van de Bunt: 11226218
 - Johanna Gehlen: 12108006
+- Nina Holzbach: 13827464
+
+## Summary
+
+## Installation
+To install the dependencies use pip and the requirements.txt in this directory. e.g.
+  $ pip install -r requirements.txt
 
 ## workflow 
 main points of attention:

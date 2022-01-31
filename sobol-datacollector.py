@@ -17,8 +17,8 @@ from IPython.display import clear_output
 
 ###### --- FILL IN THESE VALUES --- #######
 
-WHO_IS_RUNNING = "maurits"
-MY_PARAM_SET = (160, 320)
+WHO_IS_RUNNING = "Noah"
+MY_PARAM_SET = (640,799)
 ps = MY_PARAM_SET
 
 ###### --- UNTIL HERE --- #######
@@ -128,3 +128,4 @@ for interval in intervals:
 
 if intervals_collected == len(intervals):
     print("\n CONGRATULATIONS!!! You are officially done!\n\n")
+# %%

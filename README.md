@@ -11,7 +11,9 @@
 
 ## Installation
 To install the dependencies use pip and the requirements.txt in this directory. e.g.
-  $ pip install -r requirements.txt
+```
+$ pip install -r requirements.txt
+```
 
 ## workflow 
 main points of attention:

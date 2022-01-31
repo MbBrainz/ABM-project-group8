@@ -9,37 +9,64 @@ import numpy as np
 import matplotlib.pyplot as plt
 from itertools import combinations
 
+#from run_parallel import simulate_parallel
+
 #%%
 #define the variables and bounds
+# problem = {
+#     'num_vars':10,
+#     'names':['sidelength','total_steps','density', 
+#     'm_barabasi','fermi_alpha','fermi_b', 'social factor',
+#     'connections per step','opinion_max_dif', 'happiness threshold'],
+#     'bounds':[[10,10],[100,100],[0.9,0.9],[2,2],[2,10],[0,10],[0,1],[1,5],[1,10],[0,1]]
+# }
+
 problem = {
     'num_vars':6,
-    'names':['social factor','happiness threshold', 'connections per step','fermi_alpha','fermi_b','opinion_max_dif'],
-    'bounds':[[0,1],[0,1],[2,10],[0,10],[1,10],[1,5]]
+    'names':['fermi_alpha','fermi_b', 'social factor',
+    'connections per step','opinion_max_dif', 'happiness threshold'],
+    'bounds':[[2,10],[0,10],[0,1],[1,5],[1,10],[0,1]],
 }
 
+#%%
 #set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable(N. 100 is good for us)
 #total sample size = N * (num_vars+2)  
 replicates = 5
 max_steps = 200
 distinct_samples = 100
-
+#%%
 #set output
 #not sure how to connect this to our schedule 
-model_reporters={"Network modularity": lambda m:m.schedule.modularity} 
+model_reporters={"Network modularity": lambda m:m.schedule.modularity}
+#how it is stated in the Model class - "graph_modularity": self.calculate_modularity 
 
 data={}
 
+#%%
+#doing what maups said - only for one varying parameter
+
+# fixed = [10,10,0.6,2]
+# for i,var in enumerate(test['names']):
+#     print(var)
+#     default = [1,1,1,1]
+#     varied=np.linspace(*test['bounds'][i], num=distinct_samples)
+#     for option in varied:
+#         param_set=fixed+[option]+default
+#         #i know that .insert() is faster but it doesn't work here (?)
+#         print(param_set)
+
+# #now to make it general:
+#need to make it look through varible params and adjust the defaults 
+
+#%%
 for i,var in enumerate(problem['names']):
     #get bounds for the variable and get <distinct_samples> samples within this space (uniform)
     param_values = np.linspace(*problem['bounds'][i],num=distinct_samples)
 
-    #we don't need to do this
-    if var =='steps':
-        param_values = np.linspace(*problem['bounds'][i],num=distinct_samples, dtype=int)
-    #a way of not including the params we want to keep fixed?
-    if var =='density':
-        pass 
-    
+    #make things integers??
+    if var == '':
+        param_values=np.linspace(*problem['bounds'][i],num=distinct_samples, dtype=int)
+
     #need maups' paralellization here instead
     batch = BatchRunner(CityModel,
                         max_steps=max_steps,
@@ -49,7 +76,6 @@ for i,var in enumerate(problem['names']):
                         display_progress=True)
     batch.run_all()
 
-    #how do we get data from our runs
     data[var]=batch.get_agent_vars_dataframe()
 
 #%%

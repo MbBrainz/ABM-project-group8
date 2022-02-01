@@ -37,7 +37,7 @@ problem = {
 #total sample size = N * (num_vars+2)  
 replicates = 2
 max_steps = 25
-distinct_samples = 15
+distinct_samples = 3
 #%%
 #set output
 #not sure how to connect this to our schedule 
@@ -106,21 +106,42 @@ def plot_all_vars(df,param):
     for i, var in enumerate(problem['names']):
         plot_param_var_conf(axs[i], data[var], var, param, i)
 
+# for key,value in datadict.items():
+#     print(key)
+# for param in (['graph_modularity','altieri_entropy_index']):
+#     print(f"Param: {param}")
+#     plot_all_vars(data, param)
+#     plt.show()
+
+#%%
+# Saving and loading functions
+
+def saver(dictex):
+    for key, val in dictex.items():
+        val.to_csv("./data/ofat_{}.csv".format(str(key)))
+
+    with open("./data/keys.txt", "w") as f: #saving keys to file
+        f.write(str(list(dictex.keys())))
+
+def loader():
+    """Reading data from keys"""
+    with open("./data/keys.txt", "r") as f:
+        keys = eval(f.read())
+
+    dictex = {}    
+    for key in keys:
+        dictex[key] = pd.read_csv("./data/ofat_{}.csv".format(str(key)))
+
+    return dictex
+
+#%%
+saver(data)
+
+#%%
+data_loaded = loader()
 for param in (['graph_modularity','altieri_entropy_index']):
     print(f"Param: {param}")
-    plot_all_vars(data, param)
+    plot_all_vars(data_loaded, param)
     plt.show()
 
-
-# %%
-# open file for writing, "w" is writing
-w = csv.writer(open("data_15samples_2repl_DICT.csv", "w"))
-
-# loop over dictionary keys and values
-for key, val in data.items():
-
-    # write every key and value to file
-    w.writerow([key, val])
-
-
-# %%
+# # %%

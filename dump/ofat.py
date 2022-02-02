@@ -39,7 +39,7 @@ problem = {
 #total sample size = N * (num_vars+2)  
 replicates = 5
 max_steps = 25
-distinct_samples = 3
+distinct_samples = 100
 #%%
 #set output
 #not sure how to connect this to our schedule 
@@ -118,6 +118,12 @@ def plot_all_vars(df,param):
     
     ylabel = "Graph Modularity" if param == "graph_modularity" else "Altieri Entropy Index"
 
+    fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical')
+
+    fig.tight_layout()
+
+        
+
 # for key,value in datadict.items():
 #     print(key)
 # for param in (['graph_modularity','altieri_entropy_index']):
@@ -154,6 +160,9 @@ data_loaded = loader()
 for param in (['graph_modularity','altieri_entropy_index']):
     print(f"Param: {param}")
     plot_all_vars(data_loaded, param)
-    plt.show()
+
+plt.show()
 
 # # %%
+
+# %%

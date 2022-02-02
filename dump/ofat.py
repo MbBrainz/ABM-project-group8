@@ -3,12 +3,14 @@
 #from SALib.sample import saltelli
 #from SALib.analyze import sobol
 import os, sys
+from turtle import color
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from polarization.model import CityModel, Resident
 from mesa.batchrunner import BatchRunner, BatchRunnerMP
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from itertools import combinations
 import csv
 plt.style.use('seaborn')
@@ -35,9 +37,9 @@ problem = {
 #%%
 #set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable(N. 100 is good for us)
 #total sample size = N * (num_vars+2)  
-replicates = 2
+replicates = 5
 max_steps = 25
-distinct_samples = 3
+distinct_samples = 100
 #%%
 #set output
 #not sure how to connect this to our schedule 
@@ -87,10 +89,19 @@ def plot_param_var_conf(ax,df,var,param,i):
     #print(err)
     
     ax.plot(x,y,c='k')
-    ax.fill_between(x,y-err,y+err)
+    ax.fill_between(x,y-err,y+err,alpha=0.2,color='k')
 
-    ax.set_xlabel(var)
-    ax.set_ylabel(param)
+    if var == 'fermi_alpha': xlabel = "Fermi alpha"
+    elif var == 'fermi_b': xlabel = "Fermi b"
+    elif var == "social_factor": xlabel = "Social factor"
+    elif var == "connections_per_step": 
+        xlabel = "Connections per step"
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    elif var == "opinion_max_diff": xlabel = "Max. difference in opinion"
+    elif var == "happiness_threshold": xlabel = "Happiness threshold"
+
+    ax.set_xlabel(xlabel)
+    #ax.set_ylabel(param)
 
 def plot_all_vars(df,param):
     """
@@ -100,11 +111,18 @@ def plot_all_vars(df,param):
         df: dataframe that holds all data
         param: the parameter to be plotted
     """
-    f,axs=plt.subplots(6, figsize=(7,10))
-
+    fig,axs=plt.subplots(6, figsize=(8,15))
 
     for i, var in enumerate(problem['names']):
-        plot_param_var_conf(axs[i], data[var], var, param, i)
+        plot_param_var_conf(axs[i], df[var], var, param, i)
+    
+    ylabel = "Graph Modularity" if param == "graph_modularity" else "Altieri Entropy Index"
+
+    fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical')
+
+    fig.tight_layout()
+
+        
 
 # for key,value in datadict.items():
 #     print(key)
@@ -142,6 +160,9 @@ data_loaded = loader()
 for param in (['graph_modularity','altieri_entropy_index']):
     print(f"Param: {param}")
     plot_all_vars(data_loaded, param)
-    plt.show()
+
+plt.show()
 
 # # %%
+
+# %%

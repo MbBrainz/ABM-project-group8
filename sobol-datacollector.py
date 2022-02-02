@@ -18,7 +18,7 @@ from IPython.display import clear_output
 ###### --- FILL IN THESE VALUES --- #######
 
 WHO_IS_RUNNING = "Noah"
-MY_PARAM_SET = (640,799)
+MY_PARAM_SET = (800,899)
 ps = MY_PARAM_SET
 
 ###### --- UNTIL HERE --- #######

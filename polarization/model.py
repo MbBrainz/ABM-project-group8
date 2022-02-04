@@ -1,11 +1,12 @@
-
+#%%
 from collections import namedtuple
+
 
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-from tqdm import tqdm, tnrange, trange
+from tqdm import tqdm, trange
 
 import random
 import networkx as nx
@@ -23,28 +24,6 @@ If the file gets large, it may make sense to move the complex bits into other fi
 
 random.seed(711)
 
-BaseModelParams = namedtuple(
-    "ModelParams",
-    field_names = [
-        "sidelength",
-        "density",
-        "m_barabasi",
-        "fermi_alpha",
-        "fermi_b",
-        "social_factor",
-        "connections_per_step",
-        "opinion_max_diff",
-        "happiness_threshold",
-        ],
-    defaults = [10, 0.6, 2, 5, 3, 0.8, 5,  2, 0.8]
-    )
-
-class ModelParams(BaseModelParams):
-    def to_dir(self):
-        filedir=""
-        for item in self:
-            filedir += str(item).replace(".","_") + "-"
-        return filedir
 
 class Resident(Agent):
     def __init__(self, unique_id, model, pos):
@@ -58,10 +37,8 @@ class Resident(Agent):
         # set parameters for changing political opinion
         self.vulnerability = self.random.uniform(0,0.5) # we can use different distributions if we want to
         self.weight_own = 1 - self.vulnerability
-        self.weight_socials = self.model.params.social_factor * self.vulnerability
-        self.weight_neighbors = (1 - self.model.params.social_factor)* self.vulnerability
-
-        self.theta = self.random.uniform(0,1) # we can use different distributions if we want to
+        self.weight_socials = self.model.social_factor * self.vulnerability
+        self.weight_neighbors = (1 - self.model.social_factor) * self.vulnerability
 
     @property
     def socials_ids(self):
@@ -97,14 +74,14 @@ class Resident(Agent):
 
         # loop through social network and calculate influence
         for social in self.socials:
-            if abs(social.opinion-self.opinion) < self.model.params.opinion_max_diff:
+            if abs(social.opinion-self.opinion) < self.model.opinion_max_diff:
                 social_influence += social.opinion
                 n_socials += 1
         avg_social = social_influence / n_socials if n_socials != 0 else 0
 
         # loop through spatial neighbors and calculate influence
         for nbr in self.model.grid.get_neighbors(pos=self.pos,moore=True,include_center=False,radius=1):
-            if abs(nbr.opinion-self.opinion) < self.model.params.opinion_max_diff:
+            if abs(nbr.opinion-self.opinion) < self.model.opinion_max_diff:
                 n_nbrs += 1
                 nbr_influence += nbr.opinion
         avg_nbr = nbr_influence / n_nbrs if n_nbrs != 0 else 0
@@ -120,9 +97,24 @@ class Resident(Agent):
         # update own political opinion based on external and internal influence
         social_infl, nbr_infl = self.get_external_influences()
 
-        new_opinion = (self.weight_own * self.opinion) + \
-            (self.weight_socials * social_infl) + \
-            (self.weight_neighbors * nbr_infl)
+        new_opinion = self.opinion
+
+        if social_infl != 0 and nbr_infl != 0:
+            new_opinion = \
+                (self.weight_own * self.opinion) + \
+                (self.weight_socials * social_infl) + \
+                (self.weight_neighbors * nbr_infl)
+
+        elif social_infl == 0 and nbr_infl != 0:
+            new_opinion = \
+                (self.weight_own * self.opinion) + \
+                ((1-self.weight_own) * nbr_infl)
+
+        elif nbr_infl == 0 and social_infl != 0:
+            new_opinion = \
+                (self.weight_own * self.opinion) + \
+                ((1-self.weight_own) * social_infl)
+
         self.opinion = new_opinion
 
     def new_social(self):
@@ -133,10 +125,10 @@ class Resident(Agent):
                 socials_ids (list): IDs of social connections of agent
         """
         # select random un-connected agent, determine whether to form a new connection
-        if len(self.unconnected_ids) < self.model.params.connections_per_step:
+        if len(self.unconnected_ids) < self.model.connections_per_step:
             n_potentials = len(self.unconnected_ids)
         else:
-            n_potentials = self.model.params.connections_per_step
+            n_potentials = self.model.connections_per_step
 
         # randomly select 'n_potentials' from people your not connected to
         pot_make_ids = np.random.choice(self.unconnected_ids, size=n_potentials, replace=False)
@@ -154,10 +146,10 @@ class Resident(Agent):
             Args:
                 socials_ids (list): IDs of social connections of agent
         """
-        if len(self.socials_ids) < self.model.params.connections_per_step:
+        if len(self.socials_ids) < self.model.connections_per_step:
             n_potentials = len(self.socials_ids)
         else:
-            n_potentials = self.model.params.connections_per_step
+            n_potentials = self.model.connections_per_step
 
         # randomly select 'n_potentials' from the your network
         pot_break_ids = np.random.choice(self.socials_ids, size=n_potentials, replace=False)
@@ -176,7 +168,7 @@ class Resident(Agent):
             potential_agent (Resident): the resident to consider
             method (str): "ADD" or "REMOVE"
         """
-        p_ij = 1 / ( 1 + np.exp(self.model.params.fermi_alpha*(abs(self.opinion - potential_agent.opinion) - self.model.params.fermi_b)))
+        p_ij = 1 / ( 1 + np.exp(self.model.fermi_alpha * (abs(self.opinion - potential_agent.opinion) - self.model.fermi_b)))
 
         if method == "ADD":
             if p_ij > random.random():
@@ -196,10 +188,10 @@ class Resident(Agent):
         social_infl, nbr_infl = self.get_external_influences()
 
         # compare your opinion with the average of your neighbours using the fermi dirac equation.
-        happiness = 1 / ( 1 + np.exp(self.model.params.fermi_alpha*(abs(self.opinion - nbr_infl) - self.model.params.fermi_b)))
+        happiness = 1 / ( 1 + np.exp(self.model.fermi_alpha * (abs(self.opinion - nbr_infl) - self.model.fermi_b)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
-        if happiness < self.model.params.happiness_threshold:
+        if happiness < self.model.happiness_threshold:
             self.model.grid.move_to_empty(self)
             self.model.movers_per_step += 1
 
@@ -221,26 +213,38 @@ class Resident(Agent):
 
 
 class CityModel(Model):
-    def __init__(self, sidelength=20, density=0.8, m_barabasi=2, social_factor=0.8, connections_per_step=5, fermi_alpha=5, fermi_b=3, opinion_max_diff=2, happiness_threshold=0.8):
-        # grid variables
-        self.params = ModelParams(sidelength=sidelength, density=density, m_barabasi=m_barabasi, # fixed params
-                                  connections_per_step=connections_per_step,
-                                  fermi_alpha=fermi_alpha,
-                                  fermi_b=fermi_b,
-                                  social_factor=social_factor,
-                                  opinion_max_diff=opinion_max_diff,
-                                  happiness_threshold=happiness_threshold
-                                  )
+    def __init__(self,
+                 sidelength=20,
+                 density=0.8,
+                 m_barabasi=2,
+                 fermi_alpha=5,
+                 fermi_b=3,
+                 social_factor=0.8,
+                 connections_per_step=5,
+                 opinion_max_diff=2,
+                 happiness_threshold=0.8):
+
+        # model variables
+        self.sidelength = sidelength
+        self.density = density
+        self.m_barabasi = m_barabasi
+        self.fermi_alpha = fermi_alpha
+        self.fermi_b = fermi_b
+        self.social_factor = social_factor
+        self.connections_per_step = connections_per_step
+        self.opinion_max_diff = opinion_max_diff
+        self.happiness_threshold = happiness_threshold
+
         self.schedule = RandomActivation(self)
         self.movers_per_step = 0
         self.n_agents = 0
 
         # setting up the Residents:
-        self.grid = SingleGrid(self.params.sidelength, self.params.sidelength, torus=True)
+        self.grid = SingleGrid(self.sidelength, self.sidelength, torus=True)
         self.initialize_population()
 
         # build a social network
-        self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.params.m_barabasi)
+        self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
 
         self.datacollector = DataCollector(
             model_reporters={
@@ -327,7 +331,7 @@ class CityModel(Model):
             x = cell[1]
             y = cell[2]
 
-            if self.random.uniform(0,1) < self.params.density:
+            if self.random.uniform(0,1) < self.density:
                 agent = Resident(self.n_agents, self, (x,y))
                 self.grid.position_agent(agent, *(x,y))
                 self.schedule.add(agent)
@@ -338,13 +342,12 @@ class CityModel(Model):
         # the scheduler uses the step() functions of the agents
         self.schedule.step()
 
-    def run_model(self, step_count=1, desc="", pos=0, collect_during=True):
+    def run_model(self, step_count=1, desc="", pos=0, collect_during=True, collect_initial=False):
         """Method that runs the model for a fixed number of steps"""
         # A better way to do this is with a boolean 'running' that is True when initiated,
         # and becomes False when our end condition is met
-
-        # # Uncomment if you want to collect the initial state
-        # self.datacollector.collect(self)
+        if collect_initial:
+            self.datacollector.collect(self)
 
         for i in trange(step_count, desc=desc, position=pos):
             self.step()
@@ -358,21 +361,39 @@ class CityModel(Model):
 
         if not collect_during:
             self.datacollector.collect(self)
-
+#%%
 import sys
 def main(argv):
-    steps=1
-    if len(argv) != 1:
-        print ("usage: model.py <steps>")
-    else:
-        steps=int(argv[0])
-    params = ModelParams()
-    print(*params)
-    model = CityModel(*params)
-    # # proceed = benchmark(model, int(argv[0]))
-    # if proceed:
-    model.run_model()
+    from plot_graph import create_graph
+    from plot_grid import sim_grid_plot
+    from matplotlib.pyplot import savefig, subplots, hist
+
+    model = CityModel(density=0.9,fermi_alpha=4, fermi_b=1, sidelength=15, opinion_max_diff=0.5)
+    stepcount = 10
+
+    model.run_model(step_count=stepcount)
+    model_df = model.datacollector.get_model_vars_dataframe()
+    agent_df = model.datacollector.get_agent_vars_dataframe()
+
+    fig, axes = subplots(2,2)
+    axes = axes.reshape(-1)
+
+    sim_grid_plot(agent_df, grid_axis=[axes[2], axes[3]])
+    create_graph(
+        agent_df,
+        model_df,
+        graph_axes=axes[:2]
+        )
+    fig.show()
+    fig, ax = fig, ax = subplots(1, 2, )
+    ax[0].hist(agent_df.loc[[stepcount], ["opinion"]], density = True)
+    ax[1].plot(range(stepcount), model_df.movers_per_step, label = "Movers per step")
+    # savefig("maupi_plot.png")
+
 
 if __name__=="__main__":
     import sys
     main(sys.argv[1:])
+# %%
+
+# %%

@@ -153,6 +153,9 @@ def loader():
     return dictex
 
 #%%
+print(type(data))
+
+#%%
 saver(data)
 
 #%%

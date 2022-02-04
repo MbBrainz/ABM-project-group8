@@ -43,15 +43,19 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
              orientation='horizontal',label="Opinion", ticks=[0,1])
         cbar.ax.set_xticklabels(['Far left', 'Far right'])
 
-    nx.draw(G_init, ax=graph_axes[0], node_size=20, node_color=color_map_first, width=0.3, edgecolors='k', pos=layout(G_init)) 
-    nx.draw(G_last, ax=graph_axes[1], node_size=20, node_color=color_map_last, width=0.3, edgecolors='k', pos=layout(G_last))
+    nx.draw(G_init, ax=graph_axes[0], node_size=50, node_color=color_map_first, width=0.3, edgecolors='k')
+    nx.draw(G_last, ax=graph_axes[1], node_size=50, node_color=color_map_last, width=0.3, edgecolors='k')
 
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
 
+    plt.show()
+    return fig
 
 
     # %%
-# from util import testagent_df, testmodel_df
-# create_graph(testagent_df, testmodel_df)
+from util import testagent_df, testmodel_df
+img = create_graph(testagent_df, testmodel_df)
+img.savefig('./img/graph.svg',dpi=300)
+
 # %%

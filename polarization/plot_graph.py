@@ -5,12 +5,15 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 plt.style.use("seaborn")
 
-def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout):
+def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout, remove_loners=True):
     first_run_dict = model_df.loc[model_df.index[0],"edges"]
     G_init = nx.from_dict_of_dicts(first_run_dict)
 
     last_run_dict = model_df.loc[model_df.index[-1], "edges"]
     G_last = nx.from_dict_of_dicts(last_run_dict)
+    if remove_loners:
+        G_last.remove_nodes_from(list(nx.isolates(G_last)))
+
 
 # permute data
     max_step = agent_df.index.max()[0]

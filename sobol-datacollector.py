@@ -1,3 +1,6 @@
+# THIS IS LEGACY CODE -> batch_run.py replaces this file
+#
+#
 #%%
 import os
 import gc

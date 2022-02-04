@@ -23,7 +23,7 @@ ps = MY_PARAM_SET
 ###### --- UNTIL HERE --- #######
 
 replicates = 5 # maybe do 5 for time
-max_steps = 2
+max_steps = 50
 distinct_samples = 128
 
 

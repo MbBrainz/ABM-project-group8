@@ -12,7 +12,8 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
     last_run_dict = model_df.loc[model_df.index[-1], "edges"]
     G_last = nx.from_dict_of_dicts(last_run_dict)
     if remove_loners:
-        G_last.remove_nodes_from(list(nx.isolates(G_last)))
+        G_last.remove_nodes_from(list(nx.isolates(G_last))) 
+        ##
 
 
 # permute data

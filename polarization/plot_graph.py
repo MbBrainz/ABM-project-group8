@@ -36,14 +36,16 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
 # plot
     if len(graph_axes) == 0:
         fig, graph_axes = plt.subplots(1,2)
-        cbar = fig.colorbar(ScalarMappable(norm=Normalize(0,1), cmap=cmap), orientation='horizontal',label="Opinion", ticks=[0,1])
+        cbar = fig.colorbar(ScalarMappable(norm=Normalize(0,1), cmap=cmap), \
+             orientation='horizontal',label="Opinion", ticks=[0,1])
         cbar.ax.set_xticklabels(['Far left', 'Far right'])
 
-    nx.draw(G_init, ax=graph_axes[0], node_size=20, node_color=color_map_first, width=0.3, edgecolors='k', pos=layout(G_init))
+    nx.draw(G_init, ax=graph_axes[0], node_size=20, node_color=color_map_first, width=0.3, edgecolors='k', pos=layout(G_init)) 
     nx.draw(G_last, ax=graph_axes[1], node_size=20, node_color=color_map_last, width=0.3, edgecolors='k', pos=layout(G_last))
 
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
+
 
 
     # %%

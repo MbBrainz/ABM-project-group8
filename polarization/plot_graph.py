@@ -4,12 +4,15 @@ import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 
-def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr"):
+def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout, remove_loners=True):
     first_run_dict = model_df.loc[model_df.index[0],"edges"]
     G_init = nx.from_dict_of_dicts(first_run_dict)
 
     last_run_dict = model_df.loc[model_df.index[-1], "edges"]
     G_last = nx.from_dict_of_dicts(last_run_dict)
+    if remove_loners:
+        G_last.remove_nodes_from(list(nx.isolates(G_last)))
+
 
 # permute data
     max_step = agent_df.index.max()[0]
@@ -38,15 +41,14 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr"):
         cbar = fig.colorbar(ScalarMappable(norm=Normalize(0,1), cmap=cmap), orientation='horizontal',label="Opinion", ticks=[0,1])
         cbar.ax.set_xticklabels(['Far left', 'Far right'])
 
-    nx.draw(G_init, ax=graph_axes[0], node_size=100, node_color=color_map_first, width=0.3, edgecolors='k')
-    nx.draw(G_last, ax=graph_axes[1], node_size=100, node_color=color_map_last, width=0.3, edgecolors='k')
+    nx.draw(G_init, ax=graph_axes[0], node_size=20, node_color=color_map_first, width=0.3, edgecolors='k', pos=layout(G_init))
+    nx.draw(G_last, ax=graph_axes[1], node_size=20, node_color=color_map_last, width=0.3, edgecolors='k', pos=layout(G_last))
 
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
 
-    plt.show()
 
     # %%
-from util import testagent_df, testmodel_df
-create_graph(testagent_df, testmodel_df)
+# from util import testagent_df, testmodel_df
+# create_graph(testagent_df, testmodel_df)
 # %%

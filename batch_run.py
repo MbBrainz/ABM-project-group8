@@ -52,7 +52,7 @@ GENERAL_DIR ="./data/sobol/"
 for interval in intervals:
 	param_values = param_values_all[interval[0]:interval[1]]
 	WHICH_SAMPLES = f"#{interval[0]}:{interval[1]}"
-	DIR_TO_SAVE = f"{GENERAL_DIR}sobolGSA2-{WHICH_SAMPLES}-{WHO_IS_RUNNING}-maxstp={max_steps}_distsmpls={distinct_samples}_rpl={replicates}.csv"
+	DIR_TO_SAVE = f"{GENERAL_DIR}sobol3-{WHICH_SAMPLES}-{WHO_IS_RUNNING}-maxstp={max_steps}_distsmpls={distinct_samples}_rpl={replicates}.csv"
 	if os.path.isfile(DIR_TO_SAVE):
 		print(f"\nThe interval {interval} has already been simulated. moving to the next...\n")
 		continue

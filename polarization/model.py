@@ -367,7 +367,6 @@ def main(argv):
     from plot_graph import create_graph
     from plot_grid import sim_grid_plot
     from matplotlib.pyplot import savefig, subplots, hist
-    import networkx as nx
 
     model = CityModel(density=0.9,fermi_alpha=4, fermi_b=1, sidelength=15, opinion_max_diff=0.5)
     stepcount = 10
@@ -383,8 +382,7 @@ def main(argv):
     create_graph(
         agent_df,
         model_df,
-        graph_axes=axes[:2],
-        layout=nx.spring_layout
+        graph_axes=axes[:2]
         )
     fig.show()
     fig, ax = fig, ax = subplots(1, 2, )

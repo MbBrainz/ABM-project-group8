@@ -91,9 +91,9 @@ def plot_param_var_conf(ax,df,var,param,i):
     ax.plot(x,y,c='k')
     ax.fill_between(x,y-err,y+err,alpha=0.2,color='k')
 
-    if var == 'fermi_alpha': xlabel = "Fermi alpha"
-    elif var == 'fermi_b': xlabel = "Fermi b"
-    elif var == "social_factor": xlabel = "Social factor"
+    if var == 'fermi_alpha': xlabel = "Fermi-Dirac alpha"
+    elif var == 'fermi_b': xlabel = "Fermi-Dirac b"
+    elif var == "social_factor": xlabel = "Social Network Influence"
     elif var == "connections_per_step": 
         xlabel = "Connections per step"
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -117,9 +117,8 @@ def plot_all_vars(df,param):
         plot_param_var_conf(axs[i], df[var], var, param, i)
     
     ylabel = "Graph Modularity" if param == "graph_modularity" else "Altieri Entropy Index"
-
-    fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical')
-
+    #fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical')
+    fig.supylabel(ylabel)
     fig.tight_layout()
 
         

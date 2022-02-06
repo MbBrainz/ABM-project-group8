@@ -17,6 +17,7 @@ multiprocess = "*"
 networkx = "*"
 salib = "*"
 ipykernel = "*"
+pydot = "*"
 
 [dev-packages]
 autopep8 = "*"

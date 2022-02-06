@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 
-def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout, remove_loners=True):
+def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout, remove_loners=False):
     first_run_dict = model_df.loc[model_df.index[0],"edges"]
     G_init = nx.from_dict_of_dicts(first_run_dict)
 
@@ -19,8 +19,7 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
 
     agent_df = agent_df.reset_index([0])
     agents_firststep = agent_df[agent_df['Step'] == 1] # this can stay, first step is always 1
-    agents_laststep = agent_df[agent_df['Step'] == max_step] # this is hardcoded!!!
-
+    agents_laststep = agent_df[agent_df['Step'] == max_step]
 # define coloring
     color_map_first = []
     color_map_last = []
@@ -47,6 +46,28 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
 
+#%%
+def plot_single_graph(model_df, agent_df, colormap = "bwr",layout=nx.spring_layout, ax=None, remove_loners=False):
+    last_run_dict = model_df.loc[model_df.index[-1], "edges"]
+    G_last = nx.from_dict_of_dicts(last_run_dict)
+    if remove_loners:
+        G_last.remove_nodes_from(list(nx.isolates(G_last)))
+
+    max_step = agent_df.index.max()[0]
+    agent_df = agent_df.reset_index([0])
+    agents_laststep = agent_df[agent_df['Step'] == max_step]
+
+    color_map_last = []
+    cmap = plt.get_cmap(colormap)
+    for node in G_last:
+        opinion_last = agents_laststep['opinion'][node]
+        rgba = cmap(opinion_last/10) # maps from 0 to 1, so need to normalize!
+        color_map_last.append(rgba)
+
+    if ax == None:
+        fig, ax = plt.subplots(1, 1, )
+
+    nx.draw(G_last, ax=ax, node_size=20, node_color=color_map_last, width=0.3, edgecolors='k', pos=layout(G_last))
 
     # %%
 # from util import testagent_df, testmodel_df

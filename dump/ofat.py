@@ -159,6 +159,7 @@ data_loaded = loader()
 for param in (['graph_modularity','altieri_entropy_index']):
     print(f"Param: {param}")
     plot_all_vars(data_loaded, param)
+    #plt.savefig(f"{param}_OFAT.png")
 
 plt.show()
 

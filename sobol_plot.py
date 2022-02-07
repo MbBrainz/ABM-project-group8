@@ -55,8 +55,8 @@ columns[3] = "Max. difference in opinion"
 sobol_df.columns = columns
 sobol_df.head()
 
-si_resident_modularity = sobol.analyze(problem, sobol_df['Network Modularity'].values[:], print_to_console=True, calc_second_order=False)
-si_resident_entropy = sobol.analyze(problem, sobol_df['Altieri Entropy Index'].values[:], print_to_console=True, calc_second_order=False)
+si_resident_modularity = sobol.analyze(problem, sobol_df['Network Modularity'].values[:4438], print_to_console=True, calc_second_order=False)
+si_resident_entropy = sobol.analyze(problem, sobol_df['Altieri Entropy Index'].values[:4438], print_to_console=True, calc_second_order=False)
 
 #%%
 def plot_index(s, params, i, ax=None, title=''):

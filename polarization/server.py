@@ -41,40 +41,35 @@ def agent_portrayal(agent):
 
 grid= CanvasGrid(agent_portrayal,20,20,500,500)
 
+
+# chart1 = ChartModule([{"Label":"graph_modularity",
+#                      "Color":"Red"}],
+#                      data_collector_name='datacollector')
+                    
+
+# chart2 = ChartModule([{"Label":"altieri_entropy_index",
+#                      "Color":"Blue"}],
+#                      data_collector_name='datacollector')
+
+# chart3 = ChartModule([{"Label":"movers_per_step",
+#                      "Color":"Black"}],
+#                      data_collector_name='datacollector')
+
 model_params=dict(sidelength=20, 
                 density=0.9, 
                 m_barabasi=2, 
-                fermi_alpha=5, 
-                fermi_b=3, 
+                fermi_alpha=4, 
+                fermi_b=1, 
                 social_factor=0.8, 
                 connections_per_step=5, 
                 opinion_max_diff=2, 
-                happiness_threshold=0.2)
-#%%
-server=ModularServer(CityModel,
-                    [grid],
-                    "City Model",
-                    model_params)
-server.port=8521
-server.launch()
-
-#%%
-
-#10x10 grid, drawn in 500x500 pixels
-
-#he data needed is number agents moved - what is that called in data collector?
-#make sure that data collector name is correct
-
-chart = ChartModule([{"Label":"movers_per_step",
-                     "Color":"Black"}],
-                     data_collector_name='datacollector')
+                happiness_threshold=0.8)
 
 server = ModularServer(CityModel,
-                       [grid,chart],
+                        [grid],
                         "City Model",
                         model_params)
-server.port = 8521
+server.port=8521
 server.launch()
-
 
 # %%

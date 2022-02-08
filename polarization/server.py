@@ -1,5 +1,5 @@
-"""This should contain the visualization support, including the server class"""
-#%%
+"""This script contains the visualization support, including the server class"""
+
 from turtle import color
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
@@ -71,5 +71,3 @@ server = ModularServer(CityModel,
                         model_params)
 server.port=8521
 server.launch()
-
-# %%

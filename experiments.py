@@ -2,11 +2,10 @@
     """
 # order of the parameters:
 # sidelength, density, m_barabasi, fermi_alpha, fermi_b social_factor, connections per step, opinion_max_diff, happiness_threshold
-#
-#
+
 
 experiments = [
-    # defauult               sl  rho  m  a  b   sf  c  ox  ht
+    # default               sl  rho  m  a  b   sf  c  ox  ht
     {"name":"default_small",            "values":[10, 0.8, 2, 4, 1, 0.8, 5, 2, 0.8]},
     {"name":"default_small_dens",       "values":[10, 0.9, 2, 4, 1, 0.8, 5, 2, 0.8]},
     {"name":"default_average",          "values":[20, 0.8, 2, 4, 1, 0.8, 5, 2, 0.8]},

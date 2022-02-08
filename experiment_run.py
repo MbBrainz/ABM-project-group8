@@ -1,14 +1,12 @@
-#%%
+"""This script defines the plotting of information generated from the experiments.py file"""
 import matplotlib.pyplot as plt
 import numpy as np
 from polarization.model import CityModel
-# from polarization.model
 import pandas as pd
 import networkx as nx
 import seaborn as sns;
 sns.set_theme()
 sns.set_color_codes()
-
 from polarization.plot_graph import plot_single_graph
 from polarization.plot_grid import grid_plot
 
@@ -31,25 +29,9 @@ def plot_errorHue(mean_list, std_list, label, start=0,sample_data=None, sample_s
     )
     ax.legend()
 
-# #%%
-# iterations = 10
-# stepcount = 50
-# sidelength = 10
-# density = 0.9
-# m_barabasi = 2
-# fermi_alpha = 5
-# fermi_b = 3
-# opinion_max_diff = 2
-# social_factor= 0.8
-# happiness_threshold= 0.8
-# filename_prefix = "test"
-# test_experiment = {
-#     "name":"default_small",
-#     "values": [10, 0.8, 2, 4, 1, 0.8, 5, 2, 0.8]
-#     }
 PARAMS_NAMES = [ "sidelength", "density","m_barabasi", "fermi_alpha", "fermi_b", "social_factor", "connections_per_step","opinion_max_diff", "happiness_threshold" ]
 
-#%%
+
 def run_experiment(iterations, stepcount, experiment):
     model_dfs = []
     agent_dfs = []
@@ -63,10 +45,6 @@ def run_experiment(iterations, stepcount, experiment):
         agent_dfs.append( model.datacollector.get_agent_vars_dataframe())
     return agent_dfs, model_dfs
 
-
-# agent_dfs,model_dfs = run_experiment(iterations, stepcount, test_experiment)
-
-#%%
 
 def plot_experiment(agent_dfs, model_dfs, stepcount, experiment):
     for si in range(5):
@@ -101,7 +79,6 @@ def plot_experiment(agent_dfs, model_dfs, stepcount, experiment):
 
         plt.tight_layout()
 
-
         values =experiment["values"]
         indices=PARAMS_NAMES
 
@@ -109,5 +86,3 @@ def plot_experiment(agent_dfs, model_dfs, stepcount, experiment):
         for i in range(len(values)):
             filename = filename + f"{indices[i]}={values[i]}"
         plt.savefig(f"figures/experiments/{filename}{si}.svg")
-
-# %%

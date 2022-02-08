@@ -1,13 +1,9 @@
-#%%
 from collections import namedtuple
-
-
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from tqdm import tqdm, trange
-
 import random
 import networkx as nx
 from networkx.algorithms.community import greedy_modularity_communities
@@ -16,14 +12,12 @@ from networkx.algorithms.cluster import average_clustering
 import numpy as np
 from spatialentropy import leibovici_entropy
 from spatialentropy import altieri_entropy
+import sys
 
-"""This file should contain the model class.
-If the file gets large, it may make sense to move the complex bits into other files,
- this is the first place readers will look to figure out how the model works.
+"""This file contains the agent and model classes.
 """
 
 random.seed(711)
-
 
 class Resident(Agent):
     def __init__(self, unique_id, model, pos):
@@ -31,11 +25,10 @@ class Resident(Agent):
 
         # Variable attributes:
         self.pos = pos
-        self.opinion = self.random.uniform(0,10) # we can use different distributions if we want to
+        self.opinion = self.random.uniform(0,10)
 
         # Fixed attributes
-        # set parameters for changing political opinion
-        self.vulnerability = self.random.uniform(0,0.5) # we can use different distributions if we want to
+        self.vulnerability = self.random.uniform(0,0.5) 
         self.weight_own = 1 - self.vulnerability
         self.weight_socials = self.model.social_factor * self.vulnerability
         self.weight_neighbors = (1 - self.model.social_factor) * self.vulnerability
@@ -59,7 +52,7 @@ class Resident(Agent):
 
     def get_external_influences(self):
         """Calculate the external influence for an agent.
-        Average opinion of friends and average opinion of neighbors is calculated.
+        Average opinion of network and average opinion of neighbors is calculated.
 
         Args:
             socials_ids (list of Agent() objects): list of friends
@@ -99,17 +92,20 @@ class Resident(Agent):
 
         new_opinion = self.opinion
 
+        #if the agent has both network connections and neighbours, use original weighted average
         if social_infl != 0 and nbr_infl != 0:
             new_opinion = \
                 (self.weight_own * self.opinion) + \
                 (self.weight_socials * social_infl) + \
                 (self.weight_neighbors * nbr_infl)
 
+        #if the agent does not have any network connections, adjust weighted average
         elif social_infl == 0 and nbr_infl != 0:
             new_opinion = \
                 (self.weight_own * self.opinion) + \
                 ((1-self.weight_own) * nbr_infl)
 
+        #similarly, if the agent does not have any neighbours, adjust weighted average
         elif nbr_infl == 0 and social_infl != 0:
             new_opinion = \
                 (self.weight_own * self.opinion) + \
@@ -130,7 +126,7 @@ class Resident(Agent):
         else:
             n_potentials = self.model.connections_per_step
 
-        # randomly select 'n_potentials' from people your not connected to
+        # randomly select 'n_potentials' from people the agent is not connected to
         pot_make_ids = np.random.choice(self.unconnected_ids, size=n_potentials, replace=False)
 
         # get agents from model.schedule with the id's from the pot_make_ids
@@ -151,7 +147,7 @@ class Resident(Agent):
         else:
             n_potentials = self.model.connections_per_step
 
-        # randomly select 'n_potentials' from the your network
+        # randomly select 'n_potentials' from the agent's network
         pot_break_ids = np.random.choice(self.socials_ids, size=n_potentials, replace=False)
 
         # get agents from model.schedule with the id's from the pot_break_ids
@@ -162,7 +158,7 @@ class Resident(Agent):
 
 
     def consider_connection(self, potential_agent, method):
-        """Calculate the porobability of agent being connected to 'potential agent' and based on method add or remove the connection randomly
+        """Calculate the (Fermi Dirac) probability of agent being connected to 'potential agent' and based on method add or remove the connection randomly
 
         Args:
             potential_agent (Resident): the resident to consider
@@ -180,8 +176,7 @@ class Resident(Agent):
 
     def move_pos(self):
         """
-        Moves the location of an agent if they are unhappy. Once we have implemented the simulation time, we can make the probability
-        of moving increase as the time since the last move increases.
+        Moves the location of an agent if they are unhappy based on happiness threshold, theta. 
         """
 
         # get the average opinion of the neighbours (nbr_infl)
@@ -198,8 +193,7 @@ class Resident(Agent):
 
 
     def step(self):
-        """A full step of the agent, consisting of:
-        ...
+        """A full step of the agent, consisting of: updating network, updating location, updating opinion.
         """
         # update network
         self.new_social()
@@ -213,6 +207,7 @@ class Resident(Agent):
 
 
 class CityModel(Model):
+    #these are the default parameters
     def __init__(self,
                  sidelength=20,
                  density=0.8,
@@ -243,7 +238,7 @@ class CityModel(Model):
         self.grid = SingleGrid(self.sidelength, self.sidelength, torus=True)
         self.initialize_population()
 
-        # build a social network
+        # build a Barabasi Albert social network
         self.graph = nx.barabasi_albert_graph(n=self.n_agents, m=self.m_barabasi)
 
         self.datacollector = DataCollector(
@@ -277,6 +272,12 @@ class CityModel(Model):
         return graph_dict
 
     def calculate_l_entropyindex(self):
+        """Calculation of the Leibovici entropy index, using the spatial entropy packaged as described 
+            on the following github: https://github.com/Mr-Milk/SpatialEntropy 
+
+        Returns:
+            [float]: [Leibovici entropy index]
+        """
         agent_infolist = [[agent.pos, agent.opinion] for agent in self.schedule.agents]
         points = []
         types = []
@@ -302,6 +303,12 @@ class CityModel(Model):
         return e_entropyind
 
     def calculate_a_entropyindex(self):
+        """Calculation of the Altieri entropy index, using the spatial entropy packaged as described 
+            on the following github: https://github.com/Mr-Milk/SpatialEntropy 
+
+        Returns:
+            [float]: [Altieri entropy index]
+        """
         agent_infolist = [[agent.pos, agent.opinion] for agent in self.schedule.agents]
         points = []
         types = []
@@ -327,6 +334,8 @@ class CityModel(Model):
         return a_entropyind
 
     def initialize_population(self):
+        """Initialisation of the population on the 2D grid, with the density prescribed.
+        """
         for cell in self.grid.coord_iter():
             x = cell[1]
             y = cell[2]
@@ -361,8 +370,8 @@ class CityModel(Model):
 
         if not collect_during:
             self.datacollector.collect(self)
-#%%
-import sys
+
+
 def main(argv):
     from plot_graph import create_graph
     from plot_grid import sim_grid_plot
@@ -390,12 +399,8 @@ def main(argv):
     fig, ax = fig, ax = subplots(1, 2, )
     ax[0].hist(agent_df.loc[[stepcount], ["opinion"]], density = True)
     ax[1].plot(range(stepcount), model_df.movers_per_step, label = "Movers per step")
-    # savefig("maupi_plot.png")
 
 
 if __name__=="__main__":
     import sys
     main(sys.argv[1:])
-# %%
-
-# %%

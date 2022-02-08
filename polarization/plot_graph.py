@@ -1,10 +1,20 @@
-#%%
+"""This script contains the functions to plots the networkx graphs of the agent's social network, coloured by their opinion"""
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 
 def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout, remove_loners=False):
+    """The visualisation of the network graph
+
+    Args:
+        agent_df ([type]): df containing agents data from datacollector 
+        model_df ([type]): df containing model data from datacollector
+        graph_axes (list, optional): [description]. Defaults to [].
+        colormap (str, optional): the colouring of agent's opinions. Defaults to "bwr".
+        layout (optional): specific layout of network from networkx visualisation. Defaults to nx.spring_layout.
+        remove_loners (bool, optional): remove agents that do not have any connections. Defaults to False.
+    """
     first_run_dict = model_df.loc[model_df.index[0],"edges"]
     G_init = nx.from_dict_of_dicts(first_run_dict)
 
@@ -12,7 +22,6 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
     G_last = nx.from_dict_of_dicts(last_run_dict)
     if remove_loners:
         G_last.remove_nodes_from(list(nx.isolates(G_last)))
-
 
 # permute data
     max_step = agent_df.index.max()[0]
@@ -27,11 +36,11 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
 
     for node in G_last: # same IDs in both graphs
         opinion_first = agents_firststep['opinion'][node]
-        rgba = cmap(opinion_first/10) # maps from 0 to 1, so need to normalize!
+        rgba = cmap(opinion_first/10) # maps from 0 to 1, so need to normalize
         color_map_first.append(rgba)
 
         opinion_last = agents_laststep['opinion'][node]
-        rgba = cmap(opinion_last/10) # maps from 0 to 1, so need to normalize!
+        rgba = cmap(opinion_last/10) # maps from 0 to 1, so need to normalize
         color_map_last.append(rgba)
 
 # plot
@@ -46,7 +55,7 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
 
-#%%
+#do we need this?
 def plot_single_graph(model_df, agent_df, colormap = "bwr",layout=nx.spring_layout, ax=None, remove_loners=False):
     last_run_dict = model_df.loc[model_df.index[-1], "edges"]
     G_last = nx.from_dict_of_dicts(last_run_dict)
@@ -68,8 +77,3 @@ def plot_single_graph(model_df, agent_df, colormap = "bwr",layout=nx.spring_layo
         fig, ax = plt.subplots(1, 1, )
 
     nx.draw(G_last, ax=ax, node_size=20, node_color=color_map_last, width=0.3, edgecolors='k', pos=layout(G_last))
-
-    # %%
-# from util import testagent_df, testmodel_df
-# create_graph(testagent_df, testmodel_df)
-# %%

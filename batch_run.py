@@ -1,12 +1,10 @@
-#%%
+"""This script runs Sobol Sensitvity analysis on a given set of parameters and saves the results to a csv file"""
 import gc
 import os
 from batchrunner import BatchRunnerMP
 from polarization.model import CityModel
 from SALib.sample import saltelli
-
 import numpy as np
-
 
 # param_Nina      = param_values[0:160]
 # param_Maurits   = param_values[160:320]
@@ -22,7 +20,7 @@ ps = MY_PARAM_SET
 
 ###### --- UNTIL HERE --- #######
 
-replicates = 5 # maybe do 5 for time
+replicates = 5 
 max_steps = 50
 distinct_samples = 128
 
@@ -40,6 +38,7 @@ model_reporters={"Network Modularity": lambda m:m.calculate_modularity(),
 
 param_values_all = saltelli.sample(problem, distinct_samples, calc_second_order=False)
 
+#divided the problem into intervals so that data could be saved throughout and all would not be lost if computer crashed
 divide_into = 20 # actually size of the division
 intervals = []
 for i in np.arange(*ps, divide_into):
@@ -89,4 +88,3 @@ for interval in intervals:
 	del dataframe, batch, variable_parameters, tuples
 	gc.collect()
 
-	# %%

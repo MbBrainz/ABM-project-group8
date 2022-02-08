@@ -1,29 +1,18 @@
-#%%
-#import SAlib
-#from SALib.sample import saltelli
-#from SALib.analyze import sobol
+"""This script sets up and runs the OFAT Sensitivity Analysis"""
 import os, sys
+from turtle import color
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from polarization.model import CityModel, Resident
 from mesa.batchrunner import BatchRunner, BatchRunnerMP
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from itertools import combinations
+import csv
 plt.style.use('seaborn')
 
-#from run_parallel import simulate_parallel
-
-#%%
-#define the variables and bounds
-# problem = {
-#     'num_vars':10,
-#     'names':['sidelength','total_steps','density', 
-#     'm_barabasi','fermi_alpha','fermi_b', 'social factor',
-#     'connections per step','opinion_max_dif', 'happiness threshold'],
-#     'bounds':[[10,10],[100,100],[0.9,0.9],[2,2],[2,10],[0,10],[0,1],[1,5],[1,10],[0,1]]
-# }
-
+#the set of parameters to vary, and their corresponding ranges of variation
 problem = {
     'num_vars':6,
     'names':['fermi_alpha','fermi_b', 'social_factor',
@@ -31,24 +20,24 @@ problem = {
     'bounds':[[2,10],[0,10],[0,1],[1,5],[0,5],[0,1]],
 }
 
-#%%
-#set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable(N. 100 is good for us)
+#set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable (N. 100 is good for us)
 #total sample size = N * (num_vars+2)  
-replicates = 1
-max_steps = 50
-distinct_samples = 3
-#%%
+replicates = 5
+max_steps = 25
+distinct_samples = 100
+
 #set output
-#not sure how to connect this to our schedule 
 model_reporters={"graph_modularity": lambda m:m.calculate_modularity(),
                 "altieri_entropy_index": lambda m:m.calculate_a_entropyindex()}
-#how it is stated in the Model class - "graph_modularity": self.calculate_modularity 
 
 data={}
-#%%
+
+#generate the samples and run the SA
 for i,var in enumerate(problem['names']):
     #get bounds for the variable and get <distinct_samples> samples within this space (uniform)
     param_values = np.linspace(*problem['bounds'][i],num=distinct_samples)
+    
+    #set this parameter value to be an integer
     if var == 'connections_per_step':
         param_values = np.linspace(*problem['bounds'][i], num=distinct_samples, dtype=int)
 
@@ -61,10 +50,10 @@ for i,var in enumerate(problem['names']):
     batch.run_all()
 
     data[var]=batch.get_model_vars_dataframe()
-#%%
-print(data)
-#%%
-#plotting double output
+
+#print(data)
+
+#plotting both outputs
 def plot_param_var_conf(ax,df,var,param,i):
     """
     Helper function for plot_all_vars. Plots the individual parameter vs
@@ -80,13 +69,22 @@ def plot_param_var_conf(ax,df,var,param,i):
     y = df.groupby(var).mean()[param]
 
     replicates = df.groupby(var)[param].count()
-    err = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
-
+    err_series = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
+    err = err_series.tolist()
+    
     ax.plot(x,y,c='k')
-    ax.fill_between(x,y-err,y+err)
+    ax.fill_between(x,y-err,y+err,alpha=0.2,color='k')
 
-    ax.set_xlabel(var)
-    ax.set_ylabel(param)
+    if var == 'fermi_alpha': xlabel = "Fermi-Dirac alpha"
+    elif var == 'fermi_b': xlabel = "Fermi-Dirac b"
+    elif var == "social_factor": xlabel = "Social Network Influence"
+    elif var == "connections_per_step": 
+        xlabel = "Connections per step"
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    elif var == "opinion_max_diff": xlabel = "Max. difference in opinion"
+    elif var == "happiness_threshold": xlabel = "Happiness threshold"
+
+    ax.set_xlabel(xlabel)
 
 def plot_all_vars(df,param):
     """
@@ -96,15 +94,43 @@ def plot_all_vars(df,param):
         df: dataframe that holds all data
         param: the parameter to be plotted
     """
-    f,axs=plt.subplots(6, figsize=(7,10))
-
+    fig,axs=plt.subplots(6, figsize=(8,15))
 
     for i, var in enumerate(problem['names']):
-        plot_param_var_conf(axs[i], data[var], var, param, i)
+        plot_param_var_conf(axs[i], df[var], var, param, i)
+    
+    ylabel = "Graph Modularity" if param == "graph_modularity" else "Altieri Entropy Index"
+    fig.supylabel(ylabel)
+    fig.tight_layout()
 
+# Saving and loading functions
+def saver(dictex):
+    for key, val in dictex.items():
+        val.to_csv("./data/ofat_{}.csv".format(str(key)))
+
+    with open("./data/keys.txt", "w") as f: #saving keys to file
+        f.write(str(list(dictex.keys())))
+
+def loader():
+    """Reading data from keys"""
+    with open("./data/keys.txt", "r") as f:
+        keys = eval(f.read())
+
+    dictex = {}    
+    for key in keys:
+        dictex[key] = pd.read_csv("./data/ofat_{}.csv".format(str(key)))
+
+    return dictex
+
+
+#saver(data)
+
+data_loaded = loader()
+#plot OFAT SA for each output
 for param in (['graph_modularity','altieri_entropy_index']):
     print(f"Param: {param}")
-    plot_all_vars(data, param)
-    plt.show()
+    plot_all_vars(data_loaded, param)
+    #plt.savefig(f"{param}_OFAT.png")
 
-# %%
+plt.show()
+

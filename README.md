@@ -8,6 +8,8 @@
 - Nina Holzbach: 13827464
 
 ## Summary
+An Agent-based Model developed in fufillment of course #5284AGBM6Y at the University of Amsterdam. 
+The aim of this project was to investigate the dynamics of opinion polarisation, where an individual is influenced by both their social network and spatial neighbours. 
 
 ## Installation
 To install the dependencies use pip and the requirements.txt in this directory. e.g.
@@ -28,18 +30,18 @@ This will open a browser with an interactive visualisation of the spatial grid a
 * `polarisation` folder includes the following files:
   - `experiment_run.py` : Contains functions for plotting data from experiment runs
   - `experiments.py`: Generates results from a set of experiments with the model
-  - `model.py`: Contains the overall model class and the resident class
-  - `plot_graph.py`: Contains functions to plot networkx graphs of the social network of the system
+  - `model.py`: Contains the model and agent classes
+  - `plot_graph.py`: Contains functions to plot graphs of the social network of the system
   - `plot_grid.py`: Contains functions to plot the agents on the spatial grid
-  - `run.py`: Launches a model visualization server.
-  - `server.py`: Defines classes for visualizing the model in the browser via Mesa and instantiates a visualization server.
+  - `run.py`: Launches a model visualisation server.
+  - `server.py`: Defines classes for visualising the model in the browser via Mesa and instantiates a visualisation server.
   - `util.py`: Contains various utilities used throughout the project
-* `sensitivityanalysis` folder containst the following files:
+* `sensitivityanalysis` folder contains the following files:
   - `batch_run.py`: Runs Sobol (Global) Sensitivity Analysis with BatchRunnerMP
   - `ofat.py`: Generates and runs OFAT (Local) Sensitivity Analysis
   - `sobol-datacollector.py`:The initial files used to run Sobol, replaced with the faster `batch_run.py`
   - `sobol_plot.py`: Generates plots from the data generated from Sobol Sensitivity Analysis
-* ` tests` : contains some test agent and model files 
+* `tests` : contains some test agent and model files 
 
 <br>
 ...

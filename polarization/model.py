@@ -371,7 +371,7 @@ class CityModel(Model):
         if not collect_during:
             self.datacollector.collect(self)
 
-
+#this has been replaced by batch_run.py
 def main(argv):
     from plot_graph import create_graph
     from plot_grid import sim_grid_plot

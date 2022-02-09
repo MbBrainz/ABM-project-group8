@@ -5,13 +5,13 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 
 def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.spring_layout, remove_loners=False):
-    """The visualisation of the network graph
+    """The visualisation of the network graph at initital and final steps.
 
     Args:
-        agent_df ([type]): df containing agents data from datacollector 
-        model_df ([type]): df containing model data from datacollector
-        graph_axes (list, optional): [description]. Defaults to [].
-        colormap (str, optional): the colouring of agent's opinions. Defaults to "bwr".
+        agent_df : df containing agents data from datacollector 
+        model_df : df containing model data from datacollector
+        graph_axes : Defaults to [].
+        colormap : the colouring of agent's opinions. Defaults to "bwr".
         layout (optional): specific layout of network from networkx visualisation. Defaults to nx.spring_layout.
         remove_loners (bool, optional): remove agents that do not have any connections. Defaults to False.
     """
@@ -55,8 +55,17 @@ def create_graph(agent_df, model_df, graph_axes= [], colormap="bwr", layout=nx.s
     graph_axes[0].set_title('Initialized')
     graph_axes[1].set_title('Final State')
 
-#do we need this?
 def plot_single_graph(model_df, agent_df, colormap = "bwr",layout=nx.spring_layout, ax=None, remove_loners=False):
+    """ Similar to previous function, except only plotting one network graph. Used for visualising specific experiments.
+
+    Args:
+        agent_df : df containing agents data from datacollector 
+        model_df : df containing model data from datacollector
+        graph_axes : Defaults to [].
+        colormap : the colouring of agent's opinions. Defaults to "bwr".
+        layout (optional): specific layout of network from networkx visualisation. Defaults to nx.spring_layout.
+        remove_loners (bool, optional): remove agents that do not have any connections. Defaults to False.
+    """
     last_run_dict = model_df.loc[model_df.index[-1], "edges"]
     G_last = nx.from_dict_of_dicts(last_run_dict)
     if remove_loners:

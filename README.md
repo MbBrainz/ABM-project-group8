@@ -7,71 +7,40 @@
 - Johanna Gehlen: 12108006
 - Nina Holzbach: 13827464
 
-## workflow 
-main points of attention:
-- Please use vscode as text editor 😅.
-- If you make edits to main files you should create a branch with git and then if you think its working create a merge request. 
-- Try to work with `.py` files and not with `.ipynb`. 
-- Try to isolate functionality in functions as much as possible (see example below)
-- write tests in the docstrings of the functions 
+## Summary
 
-
-## filestructure
-- Write all the python code for the project in `./src/` 
-- See ./tests/. For complex code we should write tests. to test functions from `example.py` should be named `test_example.py`
-- use folder file for random stuf
-
-
-
-## examples
-
-### function isolation
-I know its a bit silly examplpe but you get the idea. The most important concequence of function isolation is that your code is better readable by your team mates, which of course contributes to the quality of the project! 💪 
-```python
-  rnd = np.random.random()
-  x = 100
-  y = 10
-  z = 200
-  
-  if rnd > 0.5:
-     u = x^2
-     z = z + u * rnd
-   else:
-    u = y^2
-    z = z + u * rnd  
+## Installation
+To install the dependencies use pip and the requirements.txt in this directory. e.g.
+```
+$ pip install -r requirements.txt
 ```
 
-its  better to write:
-```python
-  rnd = np.random.random()
-  x = 100
-  y = 10
-  z = 200
-  
-  def calculate(z, u, rnd):
-    return (z + x^2) * rnd
-  
-  if rnd > 0.5: 
-    z = calculate(z,x,rnd)
-   
-   else:
-    z = calculate(z,y,rnd)
+## How to run 
+To run the model interactively, run `mesa runserver` in this directory. e.g.
 ```
-
-### test using docstring:
-Using tests in docstring prevents making simple mistakes which bite your ass later on.
-in this example the function should multiply, but i made a simple typo...
-because of the test, it'll automatically do a sanity check and filter out the mistaces.
-
-The testing works as follows: the test evaluates this line `>>>func(2,2,2)` and it succeeds if the value equals `8`. 
-
-```python
-  def func(x, y, z):
-    """ This function should multiply all the given parameters
-    
-    >>> func(2, 2, 2) 
-    8
-    """
-    
-    return x * y + z
+$ mesa runserver
 ```
+This will open a browser with an interactive visualisation of the spatial grid and agents' opinions ranging from Blue (0) to Red (10).
+
+## Folders & Files
+* `data` folder contains all data from sensitivity analysis.
+* `figures` folder contains all figures from tests, sensitivity analysis and experiments.
+* `polarisation` folder includes the following files:
+  - `experiment_run.py` : Contains functions for plotting data from experiment runs
+  - `experiments.py`: Generates results from a set of experiments with the model
+  - `model.py`: Contains the overall model class and the resident class
+  - `plot_graph.py`: Contains functions to plot networkx graphs of the social network of the system
+  - `plot_grid.py`: Contains functions to plot the agents on the spatial grid
+  - `run.py`: Launches a model visualization server.
+  - `server.py`: Defines classes for visualizing the model in the browser via Mesa and instantiates a visualization server.
+  - `util.py`: Contains various utilities used throughout the project
+* `sensitivityanalysis` folder containst the following files:
+  - `batch_run.py`: Runs Sobol (Global) Sensitivity Analysis with BatchRunnerMP
+  - `ofat.py`: Generates and runs OFAT (Local) Sensitivity Analysis
+  - `sobol-datacollector.py`:The initial files used to run Sobol, replaced with the faster `batch_run.py`
+  - `sobol_plot.py`: Generates plots from the data generated from Sobol Sensitivity Analysis
+*`tests` : contains some test agent and model files 
+
+* `
+<br>
+...

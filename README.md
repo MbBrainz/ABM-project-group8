@@ -39,8 +39,7 @@ This will open a browser with an interactive visualisation of the spatial grid a
   - `ofat.py`: Generates and runs OFAT (Local) Sensitivity Analysis
   - `sobol-datacollector.py`:The initial files used to run Sobol, replaced with the faster `batch_run.py`
   - `sobol_plot.py`: Generates plots from the data generated from Sobol Sensitivity Analysis
-*`tests` : contains some test agent and model files 
+* ` tests` : contains some test agent and model files 
 
-* `
 <br>
 ...

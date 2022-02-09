@@ -1,4 +1,4 @@
-"""This script defines the plotting of information generated from the experiments.py file"""
+"""This script plots the data generated from the experiments.py file"""
 import matplotlib.pyplot as plt
 import numpy as np
 from polarization.model import CityModel
@@ -11,6 +11,16 @@ from polarization.plot_graph import plot_single_graph
 from polarization.plot_grid import grid_plot
 
 def plot_errorHue(mean_list, std_list, label, start=0,sample_data=None, sample_style='-r', ax=None):
+    """Plotting the information from all repetitions of a run.
+
+    Args:
+        mean_list : mean result from all repetitions
+        std_list : std of result from all repetitions
+        label : name of output measure
+        start : Defaults to 0.
+        sample_data : The sample experiment run. Defaults to None.
+        sample_style : colouring the sample data differently. Defaults to '-r'.
+    """
     if ax == None: fig, ax = plt.subplots(1,1)
     x_array = range(start, len(mean_list)+start)
     ax.plot(
@@ -33,6 +43,16 @@ PARAMS_NAMES = [ "sidelength", "density","m_barabasi", "fermi_alpha", "fermi_b",
 
 
 def run_experiment(iterations, stepcount, experiment):
+    """ Running experiment and collecting data
+
+    Args:
+        iterations : number of repetitions of run
+        stepcount : length of run
+        experiment : particular set of parameters
+
+    Returns:
+        agents_dfs, model_dfs
+    """
     model_dfs = []
     agent_dfs = []
     for i in range(iterations):
@@ -47,6 +67,18 @@ def run_experiment(iterations, stepcount, experiment):
 
 
 def plot_experiment(agent_dfs, model_dfs, stepcount, experiment):
+    """ Plots a 2x3 grid of visual results from an experiment. 
+    Visuals included are:
+    Network graph, Modularity, Movers per step, Spatial grid, Entropy, Sample Opinion Distribution.
+    Where applicable, the plots show the data from all repetitions with mean and std in blue and then 
+    alos plots the sample run in red. 
+
+    Args:
+        agent_dfs : df containing data from agent reporters
+        model_dfs : df containing data from model reporters
+        stepcount : length of run
+        experiment : particular set of parameters
+    """
     for si in range(5):
         sample = agent_dfs[si], model_dfs[si]
         model_df = pd.concat(model_dfs)

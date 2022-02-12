@@ -1,21 +1,15 @@
 ###### Requirements without version specifiers ######
 bokeh
-collections
-csv
-gc
 multiprocess
-matplotlib.pyplot
+matplotlib
 networkx
 numba
 numpy
 pandas
 pytest
-os
 scipy
 seaborn
 simpy
-spatialentropy 
+spatialentropy
 tqdm
-
-git+https://github.com/soudy/mesa#egg=mesa # this is mesa
-
+mesa

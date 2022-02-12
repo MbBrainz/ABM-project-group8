@@ -383,8 +383,8 @@ class CityModel(Model):
 
 #this has been replaced by batch_run.py
 def main(argv):
-    from plot_graph import create_graph
-    from plot_grid import sim_grid_plot
+    from .plot_graph import create_graph
+    from .plot_grid import sim_grid_plot
     from matplotlib.pyplot import savefig, subplots, hist
     import networkx as nx
 

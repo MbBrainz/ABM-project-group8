@@ -1,4 +1,4 @@
-from collections import namedtuple
+#%%
 from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import RandomActivation
@@ -28,7 +28,7 @@ class Resident(Agent):
         self.opinion = self.random.uniform(0,10)
 
         # Fixed attributes
-        self.vulnerability = self.random.uniform(0,0.5) 
+        self.vulnerability = self.random.uniform(0,0.5)
         self.weight_own = 1 - self.vulnerability
         self.weight_socials = self.model.social_factor * self.vulnerability
         self.weight_neighbors = (1 - self.model.social_factor) * self.vulnerability
@@ -48,6 +48,10 @@ class Resident(Agent):
     @property
     def unconnected(self):
         return  [unconnected for unconnected in self.model.schedule.agents if unconnected.unique_id not in self.socials_ids]
+
+    @property
+    def neighbours(self):
+        return self.model.grid.get_neighbors(self.pos, moore=True,include_center=False,radius=1)
 
 
     def get_external_influences(self):
@@ -176,14 +180,19 @@ class Resident(Agent):
 
     def move_pos(self):
         """
-        Moves the location of an agent if they are unhappy based on happiness threshold, theta. 
+        Moves the location of an agent if they are unhappy based on happiness threshold, theta.
         """
 
-        # get the average opinion of the neighbours (nbr_infl)
-        social_infl, nbr_infl = self.get_external_influences()
+        # get neighbours
+        neighbours = self.neighbours
+        opinions = 0
+        for neighbour in neighbours:
+            opinions += neighbour.opinion
+
+        av_nbr_op = opinions/len(neighbours)
 
         # compare your opinion with the average of your neighbours using the fermi dirac equation.
-        happiness = 1 / ( 1 + np.exp(self.model.fermi_alpha * (abs(self.opinion - nbr_infl) - self.model.fermi_b)))
+        happiness = 1 / ( 1 + np.exp(self.model.fermi_alpha * (abs(self.opinion - av_nbr_op) - self.model.fermi_b)))
 
         # if happiness is below some threshold, move to a random free position in the neighbourhood.
         if happiness < self.model.happiness_threshold:
@@ -272,8 +281,8 @@ class CityModel(Model):
         return graph_dict
 
     def calculate_l_entropyindex(self):
-        """Calculation of the Leibovici entropy index, using the spatial entropy packaged as described 
-            on the following github: https://github.com/Mr-Milk/SpatialEntropy 
+        """Calculation of the Leibovici entropy index, using the spatial entropy packaged as described
+            on the following github: https://github.com/Mr-Milk/SpatialEntropy
 
         Returns:
             [float]: [Leibovici entropy index]
@@ -303,8 +312,8 @@ class CityModel(Model):
         return e_entropyind
 
     def calculate_a_entropyindex(self):
-        """Calculation of the Altieri entropy index, using the spatial entropy packaged as described 
-            on the following github: https://github.com/Mr-Milk/SpatialEntropy 
+        """Calculation of the Altieri entropy index, using the spatial entropy packaged as described
+            on the following github: https://github.com/Mr-Milk/SpatialEntropy
 
         Returns:
             [float]: [Altieri entropy index]
@@ -378,8 +387,8 @@ def main(argv):
     from matplotlib.pyplot import savefig, subplots, hist
     import networkx as nx
 
-    model = CityModel(density=0.9,fermi_alpha=4, fermi_b=1, sidelength=15, opinion_max_diff=0.5)
-    stepcount = 10
+    model = CityModel(density=0.9,fermi_alpha=4, fermi_b=1, sidelength=15, opinion_max_diff=0.5, happiness_threshold=0.2)
+    stepcount = 50
 
     model.run_model(step_count=stepcount)
     model_df = model.datacollector.get_model_vars_dataframe()
@@ -399,8 +408,13 @@ def main(argv):
     fig, ax = fig, ax = subplots(1, 2, )
     ax[0].hist(agent_df.loc[[stepcount], ["opinion"]], density = True)
     ax[1].plot(range(stepcount), model_df.movers_per_step, label = "Movers per step")
+    fig.show()
 
 
 if __name__=="__main__":
     import sys
     main(sys.argv[1:])
+
+# %%
+
+# %%

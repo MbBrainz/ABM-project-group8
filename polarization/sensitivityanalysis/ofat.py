@@ -1,15 +1,14 @@
 """This script sets up and runs the OFAT Sensitivity Analysis"""
 import os, sys
 from turtle import color
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from polarization.model import CityModel, Resident
 from mesa.batchrunner import BatchRunner, BatchRunnerMP
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from itertools import combinations
-import csv
+
+from polarization.core.model import CityModel, Resident
 plt.style.use('seaborn')
 
 #the set of parameters to vary, and their corresponding ranges of variation
@@ -21,7 +20,7 @@ problem = {
 }
 
 #set repitions(compensate for stochasticity), number of steps and amount of distinct values per variable (N. 100 is good for us)
-#total sample size = N * (num_vars+2)  
+#total sample size = N * (num_vars+2)
 replicates = 5
 max_steps = 25
 distinct_samples = 100
@@ -36,7 +35,7 @@ data={}
 for i,var in enumerate(problem['names']):
     #get bounds for the variable and get <distinct_samples> samples within this space (uniform)
     param_values = np.linspace(*problem['bounds'][i],num=distinct_samples)
-    
+
     #set this parameter value to be an integer
     if var == 'connections_per_step':
         param_values = np.linspace(*problem['bounds'][i], num=distinct_samples, dtype=int)
@@ -71,14 +70,14 @@ def plot_param_var_conf(ax,df,var,param,i):
     replicates = df.groupby(var)[param].count()
     err_series = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
     err = err_series.tolist()
-    
+
     ax.plot(x,y,c='k')
     ax.fill_between(x,y-err,y+err,alpha=0.2,color='k')
 
     if var == 'fermi_alpha': xlabel = "Fermi-Dirac alpha"
     elif var == 'fermi_b': xlabel = "Fermi-Dirac b"
     elif var == "social_factor": xlabel = "Social Network Influence"
-    elif var == "connections_per_step": 
+    elif var == "connections_per_step":
         xlabel = "Connections per step"
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     elif var == "opinion_max_diff": xlabel = "Max. difference in opinion"
@@ -98,7 +97,7 @@ def plot_all_vars(df,param):
 
     for i, var in enumerate(problem['names']):
         plot_param_var_conf(axs[i], df[var], var, param, i)
-    
+
     ylabel = "Graph Modularity" if param == "graph_modularity" else "Altieri Entropy Index"
     fig.supylabel(ylabel)
     fig.tight_layout()
@@ -116,7 +115,7 @@ def loader():
     with open("./data/keys.txt", "r") as f:
         keys = eval(f.read())
 
-    dictex = {}    
+    dictex = {}
     for key in keys:
         dictex[key] = pd.read_csv("./data/ofat_{}.csv".format(str(key)))
 
@@ -133,4 +132,3 @@ for param in (['graph_modularity','altieri_entropy_index']):
     #plt.savefig(f"{param}_OFAT.png")
 
 plt.show()
-

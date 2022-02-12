@@ -1,10 +1,11 @@
 """This script runs Sobol Sensitvity analysis on a given set of parameters and saves the results to a csv file"""
 import gc
 import os
-from batchrunner import BatchRunnerMP
-from polarization.model import CityModel
 from SALib.sample import saltelli
 import numpy as np
+
+from polarization.mesa_fix.batchrunner import BatchRunnerMP
+from polarization.core.model import CityModel
 
 # param_Nina      = param_values[0:160]
 # param_Maurits   = param_values[160:320]
@@ -15,12 +16,12 @@ import numpy as np
 ###### --- FILL IN THESE VALUES --- #######
 
 WHO_IS_RUNNING = "maurits"
-MY_PARAM_SET = (0, 400)
+MY_PARAM_SET = (0, 19)
 ps = MY_PARAM_SET
 
 ###### --- UNTIL HERE --- #######
 
-replicates = 5 
+replicates = 1
 max_steps = 50
 distinct_samples = 128
 
@@ -87,4 +88,3 @@ for interval in intervals:
 
 	del dataframe, batch, variable_parameters, tuples
 	gc.collect()
-

@@ -4,7 +4,8 @@ from turtle import color
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
-from model import CityModel, Resident
+
+from polarization.core.model import CityModel, Resident
 
 def agent_portrayal(agent):
     if agent == None:
@@ -14,13 +15,13 @@ def agent_portrayal(agent):
                  "Filled": "true",
                  "r": 0.5,
                  "Layer":0}
-    if type(agent) is Resident:   
+    if type(agent) is Resident:
         if 0 <= agent.opinion < 1:
             portrayal["Color"] = "#1c1cff"
         elif 1 <= agent.opinion < 2:
             portrayal["Color"] = "#2e2eff"
         elif 2 <= agent.opinion < 3:
-            portrayal["Color"] = "#4d4dff" 
+            portrayal["Color"] = "#4d4dff"
         elif 3 <= agent.opinion < 4:
             portrayal["Color"] = "#7a7aff"
         elif 4 <= agent.opinion < 5:
@@ -35,7 +36,7 @@ def agent_portrayal(agent):
             portrayal["Color"] = "#ff3333"
         elif 9 <= agent.opinion < 10:
             portrayal["Color"] = "#f70000"
-        
+
     return portrayal
 
 
@@ -45,7 +46,7 @@ grid= CanvasGrid(agent_portrayal,20,20,500,500)
 # chart1 = ChartModule([{"Label":"graph_modularity",
 #                      "Color":"Red"}],
 #                      data_collector_name='datacollector')
-                    
+
 
 # chart2 = ChartModule([{"Label":"altieri_entropy_index",
 #                      "Color":"Blue"}],
@@ -55,14 +56,14 @@ grid= CanvasGrid(agent_portrayal,20,20,500,500)
 #                      "Color":"Black"}],
 #                      data_collector_name='datacollector')
 
-model_params=dict(sidelength=20, 
-                density=0.9, 
-                m_barabasi=2, 
-                fermi_alpha=4, 
-                fermi_b=1, 
-                social_factor=0.8, 
-                connections_per_step=5, 
-                opinion_max_diff=2, 
+model_params=dict(sidelength=20,
+                density=0.9,
+                m_barabasi=2,
+                fermi_alpha=4,
+                fermi_b=1,
+                social_factor=0.8,
+                connections_per_step=5,
+                opinion_max_diff=2,
                 happiness_threshold=0.8)
 
 server = ModularServer(CityModel,

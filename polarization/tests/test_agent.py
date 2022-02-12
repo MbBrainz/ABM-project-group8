@@ -3,27 +3,25 @@ from networkx import barabasi_albert_graph, complete_graph, empty_graph, to_edge
 from unittest.mock import patch
 
 import os, sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from polarization.model import CityModel, Resident, ModelParams
-from test_model import clear_model
+from polarization.core.model import CityModel, Resident
+from .test_model import clear_model
 
 
 global N_POTENTIAL_CONNECTIONS
 N_POTENTIAL_CONNECTIONS = 1
 
-test_params = ModelParams(4,1)
+
 class TestResident(unittest.TestCase):
     def setUp(self) -> None:
-        self.model = CityModel(test_params)
+        self.model = CityModel(sidelength=2,density=1)
         clear_model(self.model)
         self.model.initialize_population()
-        self.model.graph = barabasi_albert_graph(n=self.model.n_agents, m=self.model.params.m_barabasi)
+        self.model.graph = barabasi_albert_graph(n=self.model.n_agents, m=self.model.m_barabasi)
 
         self.test_agent = self.model.schedule.agents[0]
 
-        self.random_random_patcher = patch('polarization.model.random.random')
-        self.random_choices_patcher = patch('polarization.model.random.choices')
+        self.random_random_patcher = patch('polarization.core.model.random.random')
+        self.random_choices_patcher = patch('polarization.core.model.random.choices')
 
         return super().setUp()
 
@@ -32,8 +30,8 @@ class TestResident(unittest.TestCase):
         assert type(self.test_agent.model) == CityModel
         assert self.test_agent.pos != 0
         assert self.test_agent.pos == (0, 0)
-        assert len(self.model.schedule.agents) == self.model.params.sidelength * \
-            self.model.params.sidelength
+        assert len(self.model.schedule.agents) == self.model.sidelength * \
+            self.model.sidelength
 
     def test_new_social_accept_all(self):
         self.patch_random()
@@ -73,7 +71,7 @@ class TestResident(unittest.TestCase):
 
         self.model.graph = complete_graph(n=self.model.n_agents)
         assert len(to_edgelist(self.model.graph)
-                   ) > self.model.params.sidelength * self.model.params.sidelength
+                   ) > self.model.sidelength * self.model.sidelength
         self.test_agent.remove_social()
 
         assert ((self.test_agent.unique_id, 1) in to_edgelist(
@@ -86,7 +84,7 @@ class TestResident(unittest.TestCase):
         self.model.schedule.remove(self.model.schedule.agents[-1])
         self.model.step()
         agent_df = self.model.datacollector.get_agent_vars_dataframe()
-        assert agent_df.shape == (3, 2), "shape is different than expected"
+        assert agent_df.shape == (0, 2), "shape is different than expected"
 
     def patch_random(self):
         self.test_resident = self.model.schedule.agents[1]

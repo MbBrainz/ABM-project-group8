@@ -1,14 +1,15 @@
 """This script plots the data generated from the experiments.py file"""
 import matplotlib.pyplot as plt
 import numpy as np
-from model import CityModel
 import pandas as pd
 import networkx as nx
 import seaborn as sns;
 sns.set_theme()
 sns.set_color_codes()
-from plot_graph import plot_single_graph
-from plot_grid import grid_plot
+
+from polarization.core.model import CityModel
+from polarization.core.plot_graph import plot_single_graph
+from polarization.core.plot_grid import grid_plot
 
 def plot_errorHue(mean_list, std_list, label, start=0,sample_data=None, sample_style='-r', ax=None):
     """Plotting the information from all repetitions of a run.
@@ -67,11 +68,11 @@ def run_experiment(iterations, stepcount, experiment):
 
 
 def plot_experiment(agent_dfs, model_dfs, stepcount, experiment):
-    """ Plots a 2x3 grid of visual results from an experiment. 
+    """ Plots a 2x3 grid of visual results from an experiment.
     Visuals included are:
     Network graph, Modularity, Movers per step, Spatial grid, Entropy, Sample Opinion Distribution.
-    Where applicable, the plots show the data from all repetitions with mean and std in blue and then 
-    alos plots the sample run in red. 
+    Where applicable, the plots show the data from all repetitions with mean and std in blue and then
+    alos plots the sample run in red.
 
     Args:
         agent_dfs : df containing data from agent reporters
@@ -79,7 +80,9 @@ def plot_experiment(agent_dfs, model_dfs, stepcount, experiment):
         stepcount : length of run
         experiment : particular set of parameters
     """
-    for si in range(5):
+    samples = 5
+    if len(model_dfs) < 5: samples = len(model_dfs)
+    for si in range(samples):
         sample = agent_dfs[si], model_dfs[si]
         model_df = pd.concat(model_dfs)
         model_df = model_df.drop(columns=['edges', 'leibovici_entropy_index'])

@@ -7,9 +7,10 @@ from time import time
 from SALib.sample import saltelli
 import numpy as np
 import pandas as pd
-from polarization.model import CityModel
 from mesa.batchrunner import BatchRunner, BatchRunnerMP
 from IPython.display import clear_output
+
+from polarization.core.model import CityModel
 
 # param_Nina      = param_values[0:160]
 # param_Maurits   = param_values[160:320]

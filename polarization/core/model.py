@@ -183,13 +183,14 @@ class Resident(Agent):
         Moves the location of an agent if they are unhappy based on happiness threshold, theta.
         """
 
-        # get neighbours
-        neighbours = self.neighbours
-        opinions = 0
-        for neighbour in neighbours:
-            opinions += neighbour.opinion
+        # # Correct the error in the model
+        # neighbours = self.neighbours
+        # opinions = 0
+        # for neighbour in neighbours:
+        #     opinions += neighbour.opinio
+        # av_nbr_op = opinions/len(neighbours)
 
-        av_nbr_op = opinions/len(neighbours)
+        social_infl, av_nbr_op = self.get_external_influences()
 
         # compare your opinion with the average of your neighbours using the fermi dirac equation.
         happiness = 1 / ( 1 + np.exp(self.model.fermi_alpha * (abs(self.opinion - av_nbr_op) - self.model.fermi_b)))

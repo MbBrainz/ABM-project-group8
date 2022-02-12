@@ -12,4 +12,5 @@ seaborn
 simpy
 spatialentropy
 tqdm
+pydot
 mesa
